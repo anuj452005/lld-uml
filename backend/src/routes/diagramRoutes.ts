@@ -1,5 +1,14 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { DiagramService } from '../services/diagramService.js';
+import {
+  CreateDiagramPayloadSchema,
+  UpdateDiagramPayloadSchema,
+  validateClassName,
+  validateField,
+  validateMethodSignature,
+  validateRelationship,
+} from '../lib/validation/index.js';
+import type { UMLDiagram } from '../types/uml.js';
 
 const router = Router();
 
@@ -19,10 +28,17 @@ const authenticate = (req: Request, res: Response, next: NextFunction) => {
 // POST /api/v1/diagrams - Create a new diagram
 router.post('/', authenticate, async (req: Request, res: Response) => {
   try {
-    const { name, sourceType } = req.body;
-    if (!name || !sourceType) {
-      return res.status(400).json({ success: false, error: 'Name and sourceType are required' });
+    const result = CreateDiagramPayloadSchema.safeParse(req.body);
+    
+    if (!result.success) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Validation failed', 
+        details: result.error.issues 
+      });
     }
+
+    const { name, sourceType } = result.data;
     const diagram = await DiagramService.createDiagram((req as any).token, name, sourceType);
     res.status(201).json({ success: true, data: { diagramId: diagram.id } });
   } catch (error: any) {
@@ -52,5 +68,94 @@ router.get('/:id', authenticate, async (req: Request, res: Response) => {
     res.status(error.message === 'Unauthorized' ? 401 : 404).json({ success: false, error: error.message });
   }
 });
+
+// PATCH /api/v1/diagrams/:id - Update diagram structure
+router.patch('/:id', authenticate, async (req: Request, res: Response) => {
+  try {
+    const result = UpdateDiagramPayloadSchema.safeParse(req.body);
+    
+    if (!result.success) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'Validation failed', 
+        details: result.error.issues 
+      });
+    }
+
+    const semanticError = validateDiagramSemantic(result.data.diagram as UMLDiagram);
+    if (semanticError) {
+      return res.status(400).json({
+        success: false,
+        error: 'Validation failed',
+        details: [{ message: semanticError }],
+      });
+    }
+
+    await DiagramService.updateDiagram((req as any).token, req.params.id as string, result.data);
+    res.status(200).json({ success: true });
+  } catch (error: any) {
+    console.error('Error updating diagram:', error);
+    res.status(error.message === 'Unauthorized' ? 401 : 500).json({ success: false, error: error.message });
+  }
+});
+
+function validateDiagramSemantic(diagram: UMLDiagram): string | null {
+  const entityNames = [
+    ...diagram.classes.map((cls) => cls.name),
+    ...diagram.interfaces.map((intf) => intf.name),
+  ];
+
+  for (const cls of diagram.classes) {
+    const classNameValidation = validateClassName(
+      cls.name,
+      entityNames.filter((name: string) => name !== cls.name)
+    );
+
+    if (!classNameValidation.valid) {
+      return classNameValidation.error ?? 'Invalid class name';
+    }
+
+    for (const field of cls.fields) {
+      const fieldValidation = validateField(field);
+      if (!fieldValidation.valid) {
+        return fieldValidation.error ?? 'Invalid field';
+      }
+    }
+
+    for (const method of cls.methods) {
+      const methodValidation = validateMethodSignature(method.signature);
+      if (!methodValidation.valid) {
+        return methodValidation.error ?? 'Invalid method signature';
+      }
+    }
+  }
+
+  for (const intf of diagram.interfaces) {
+    const interfaceNameValidation = validateClassName(
+      intf.name,
+      entityNames.filter((name: string) => name !== intf.name)
+    );
+
+    if (!interfaceNameValidation.valid) {
+      return interfaceNameValidation.error ?? 'Invalid interface name';
+    }
+
+    for (const method of intf.methods) {
+      const methodValidation = validateMethodSignature(method.signature);
+      if (!methodValidation.valid) {
+        return methodValidation.error ?? 'Invalid method signature';
+      }
+    }
+  }
+
+  for (const relationship of diagram.relationships) {
+    const relationshipValidation = validateRelationship(relationship, diagram);
+    if (!relationshipValidation.valid) {
+      return relationshipValidation.error ?? 'Invalid relationship';
+    }
+  }
+
+  return null;
+}
 
 export default router;

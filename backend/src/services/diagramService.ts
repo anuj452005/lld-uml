@@ -99,4 +99,43 @@ export class DiagramService {
       updatedAt: diagram.updated_at
     };
   }
+
+  /**
+   * Updates an existing diagram by creating/updating its working snapshot.
+   */
+  static async updateDiagram(
+    token: string,
+    id: string,
+    data: { diagram: UMLDiagram; layout: UMLDiagram['layout']; viewport: UMLDiagram['viewport'] }
+  ) {
+    const supabase = createScopedClient(token);
+
+    // 1. Update the diagram record timestamp
+    const { error: diagError } = await supabase
+      .from('diagrams')
+      .update({ updated_at: new Date().toISOString() })
+      .eq('id', id);
+
+    if (diagError) throw diagError;
+
+    // 2. Update the latest working snapshot
+    const { error: snapError } = await supabase
+      .from('diagram_snapshots')
+      .update({
+        uml_model: {
+          classes: data.diagram.classes,
+          interfaces: data.diagram.interfaces,
+          relationships: data.diagram.relationships,
+        },
+        layout_state: data.layout,
+        viewport_state: data.viewport,
+        metadata: { ...data.diagram.metadata, isModified: true }
+      })
+      .eq('diagram_id', id)
+      .eq('snapshot_type', 'working');
+
+    if (snapError) throw snapError;
+
+    return { success: true };
+  }
 }

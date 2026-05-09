@@ -3,6 +3,7 @@
 import React from 'react';
 import { Trash2, Plus } from 'lucide-react';
 import { UMLField, UMLVisibility } from '@/types/uml';
+import { validateField } from '@/lib/validation';
 
 interface FieldEditorProps {
   fields: UMLField[];
@@ -45,12 +46,16 @@ export const FieldEditor: React.FC<FieldEditorProps> = ({ fields, onChange }) =>
 
       <div className="flex flex-col gap-2">
         {fields.map((field) => (
+          (() => {
+            const validation = validateField(field);
+
+            return (
           <div key={field.id} className="p-2 bg-bg-surface-tertiary rounded-md border border-border-secondary flex flex-col gap-2 group relative">
             <div className="flex gap-2">
               <select 
                 value={field.visibility}
                 onChange={(e) => updateField(field.id, { visibility: e.target.value as UMLVisibility })}
-                className="bg-bg-surface-secondary border border-border-primary rounded-sm px-1 py-1 text-xs text-text-primary focus:outline-none focus:border-border-active w-12"
+                className={`bg-bg-surface-secondary border ${!validation.valid && validation.error?.includes('visibility') ? 'border-status-error' : 'border-border-primary'} rounded-sm px-1 py-1 text-xs text-text-primary focus:outline-none focus:border-border-active w-12`}
               >
                 <option value="public">+</option>
                 <option value="private">-</option>
@@ -62,16 +67,18 @@ export const FieldEditor: React.FC<FieldEditorProps> = ({ fields, onChange }) =>
                 value={field.name}
                 onChange={(e) => updateField(field.id, { name: e.target.value })}
                 placeholder="field_name"
-                className="flex-1 bg-bg-surface-secondary border border-border-primary rounded-sm px-2 py-1 text-xs text-text-primary focus:outline-none focus:border-border-active font-mono"
+                className={`flex-1 bg-bg-surface-secondary border ${!validation.valid && validation.error?.toLowerCase().includes('name') ? 'border-status-error' : 'border-border-primary'} rounded-sm px-2 py-1 text-xs text-text-primary focus:outline-none focus:border-border-active font-mono`}
+                title={validation.valid ? '' : validation.error}
               />
             </div>
             <div className="flex gap-2 items-center">
-              <input 
+               <input 
                 type="text" 
                 value={field.type}
                 onChange={(e) => updateField(field.id, { type: e.target.value })}
                 placeholder="Type"
-                className="flex-1 bg-bg-surface-secondary border border-border-primary rounded-sm px-2 py-1 text-xs text-text-primary focus:outline-none focus:border-border-active font-mono"
+                className={`flex-1 bg-bg-surface-secondary border ${!validation.valid && validation.error?.toLowerCase().includes('type') ? 'border-status-error' : 'border-border-primary'} rounded-sm px-2 py-1 text-xs text-text-primary focus:outline-none focus:border-border-active font-mono`}
+                title={validation.valid ? '' : validation.error}
               />
               <div className="flex gap-3">
                 <label className="flex items-center gap-1.5 cursor-pointer">
@@ -101,7 +108,12 @@ export const FieldEditor: React.FC<FieldEditorProps> = ({ fields, onChange }) =>
                 <Trash2 size={14} />
               </button>
             </div>
+            {!validation.valid && (
+              <p className="text-[10px] text-status-error font-medium">{validation.error}</p>
+            )}
           </div>
+            );
+          })()
         ))}
         {fields.length === 0 && (
           <div className="text-center py-4 border border-dashed border-border-primary rounded-md">

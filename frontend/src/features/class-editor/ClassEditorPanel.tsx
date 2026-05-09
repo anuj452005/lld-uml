@@ -16,6 +16,8 @@ export const ClassEditorPanel: React.FC = () => {
   const {
     name,
     setName,
+    nameError,
+    validateName,
     visibility,
     setVisibility,
     isAbstract,
@@ -28,7 +30,8 @@ export const ClassEditorPanel: React.FC = () => {
     handleDelete,
     handleCancel,
     isEditMode,
-    isOpen
+    isOpen,
+    canSave,
   } = useClassEditor();
 
   if (!isOpen) return null;
@@ -58,10 +61,14 @@ export const ClassEditorPanel: React.FC = () => {
               type="text" 
               value={name}
               onChange={(e) => setName(e.target.value)}
+              onBlur={validateName}
               placeholder="e.g. AuthService"
-              className="w-full bg-bg-surface-secondary border border-border-primary rounded-md py-2 px-3 text-sm text-text-primary focus:outline-none focus:border-border-active font-mono transition-colors"
+              className={`w-full bg-bg-surface-secondary border ${nameError ? 'border-status-error' : 'border-border-primary'} rounded-md py-2 px-3 text-sm text-text-primary focus:outline-none focus:border-border-active font-mono transition-colors`}
               autoFocus
             />
+            {nameError && (
+              <span className="text-[10px] text-status-error font-medium">{nameError}</span>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -108,7 +115,7 @@ export const ClassEditorPanel: React.FC = () => {
       <div className="p-4 border-t border-border-primary flex flex-col gap-3">
         <button 
           onClick={handleSave}
-          disabled={!name.trim()}
+          disabled={!canSave}
           className="w-full flex items-center justify-center gap-2 bg-accent-primary hover:bg-accent-primary-hover disabled:opacity-50 disabled:cursor-not-allowed text-text-inverse py-2.5 rounded-md text-sm font-semibold transition-colors shadow-sm"
         >
           <Save size={18} />

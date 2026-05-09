@@ -15,9 +15,6 @@ if (!supabaseUrl || !supabaseServiceKey) {
 export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
   auth: {
     persistSession: false
-  },
-  realtime: {
-    transport: ws
   }
 });
 
@@ -34,9 +31,6 @@ export const createScopedClient = (token: string) => {
     },
     auth: {
       persistSession: false
-    },
-    realtime: {
-      transport: ws
     }
   });
 };

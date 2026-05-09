@@ -2,42 +2,13 @@
 
 import React from 'react';
 import { Trash2, Plus } from 'lucide-react';
-import { UMLMethod, UMLVisibility, UMLMethodParameter } from '@/types/uml';
+import { UMLMethod, UMLVisibility } from '@/types/uml';
+import { validateMethodSignature, parseMethodSignature } from '@/lib/validation';
 
 interface MethodEditorProps {
   methods: UMLMethod[];
   onChange: (methods: UMLMethod[]) => void;
 }
-
-/**
- * Simplistic parser for method signatures
- * Format: name(param: type, ...): returnType
- */
-const parseSignature = (signature: string): { name: string, parameters: UMLMethodParameter[], returnType: string } => {
-  const defaultResult = { name: signature.split('(')[0] || 'method', parameters: [], returnType: 'void' };
-  
-  try {
-    const match = signature.match(/^([^(]+)\(([^)]*)\)(?::\s*(.+))?$/);
-    if (!match) return defaultResult;
-
-    const name = match[1].trim();
-    const paramsStr = match[2].trim();
-    const returnType = (match[3] || 'void').trim();
-
-    const parameters: UMLMethodParameter[] = paramsStr ? paramsStr.split(',').map(p => {
-      const [pName, pType] = p.split(':').map(s => s.trim());
-      return {
-        id: crypto.randomUUID(),
-        name: pName || 'p',
-        type: pType || 'Object'
-      };
-    }) : [];
-
-    return { name, parameters, returnType };
-  } catch (e) {
-    return defaultResult;
-  }
-};
 
 export const MethodEditor: React.FC<MethodEditorProps> = ({ methods, onChange }) => {
   const addMethod = () => {
@@ -64,8 +35,11 @@ export const MethodEditor: React.FC<MethodEditorProps> = ({ methods, onChange })
         const newMethod = { ...m, ...updates };
         // If signature changed, re-parse name, params, and return type
         if (updates.signature !== undefined) {
-          const parsed = parseSignature(updates.signature);
-          return { ...newMethod, ...parsed };
+          const validation = validateMethodSignature(updates.signature);
+          if (validation.valid) {
+            const parsed = parseMethodSignature(updates.signature);
+            return { ...newMethod, ...parsed };
+          }
         }
         return newMethod;
       }
@@ -89,6 +63,10 @@ export const MethodEditor: React.FC<MethodEditorProps> = ({ methods, onChange })
 
       <div className="flex flex-col gap-2">
         {methods.map((method) => (
+          (() => {
+            const validation = validateMethodSignature(method.signature);
+
+            return (
           <div key={method.id} className="p-2 bg-bg-surface-tertiary rounded-md border border-border-secondary flex flex-col gap-2 group relative">
             <div className="flex gap-2">
               <select 
@@ -106,7 +84,8 @@ export const MethodEditor: React.FC<MethodEditorProps> = ({ methods, onChange })
                 value={method.signature}
                 onChange={(e) => updateMethod(method.id, { signature: e.target.value })}
                 placeholder="methodName(p: Type): ReturnType"
-                className="flex-1 bg-bg-surface-secondary border border-border-primary rounded-sm px-2 py-1 text-xs text-text-primary focus:outline-none focus:border-border-active font-mono"
+                className={`flex-1 bg-bg-surface-secondary border ${!validation.valid ? 'border-status-error' : 'border-border-primary'} rounded-sm px-2 py-1 text-xs text-text-primary focus:outline-none focus:border-border-active font-mono`}
+                title={validation.error || ''}
               />
             </div>
             <div className="flex gap-4 items-center pl-1">
@@ -136,7 +115,12 @@ export const MethodEditor: React.FC<MethodEditorProps> = ({ methods, onChange })
                 <Trash2 size={14} />
               </button>
             </div>
+            {!validation.valid && (
+              <p className="text-[10px] text-status-error font-medium">{validation.error}</p>
+            )}
           </div>
+            );
+          })()
         ))}
         {methods.length === 0 && (
           <div className="text-center py-4 border border-dashed border-border-primary rounded-md">

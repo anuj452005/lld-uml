@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { UMLClass, UMLDiagram } from '@/types/uml';
 import { useLayoutStore } from '@/stores/layoutStore';
+import { validateClassName } from '@/lib/validation';
 
 interface UMLStoreState {
   diagram: UMLDiagram | null;
@@ -26,6 +27,17 @@ export const useUMLStore = create<UMLStoreState>((set) => ({
 
   addClass: (cls) => set((state) => {
     if (!state.diagram) return state;
+
+    // Semantic validation
+    const existingNames = [
+      ...state.diagram.classes.map(c => c.name),
+      ...state.diagram.interfaces.map(i => i.name)
+    ];
+    const validation = validateClassName(cls.name, existingNames);
+    if (!validation.valid) {
+      console.error(`Store rejection: ${validation.error}`);
+      return state;
+    }
 
     const layoutStore = useLayoutStore.getState();
     const existingLayout = layoutStore.nodes.find((node) => node.entityId === cls.id);
@@ -53,6 +65,20 @@ export const useUMLStore = create<UMLStoreState>((set) => ({
 
   updateClass: (id, updates) => set((state) => {
     if (!state.diagram) return state;
+
+    // Semantic validation if name is being updated
+    if (updates.name) {
+      const existingNames = [
+        ...state.diagram.classes.filter(c => c.id !== id).map(c => c.name),
+        ...state.diagram.interfaces.filter(i => i.id !== id).map(i => i.name)
+      ];
+      const validation = validateClassName(updates.name, existingNames);
+      if (!validation.valid) {
+        console.error(`Store rejection: ${validation.error}`);
+        return state;
+      }
+    }
+
     return {
       diagram: {
         ...state.diagram,

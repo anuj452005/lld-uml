@@ -4,14 +4,13 @@ Update this file after every meaningful implementation change.
 
 ## Current Phase
 
-- Unit 2 Completed: Supabase Auth and User Workspace
+- Unit 6 Completed: UML Validation and Constraints
 
 ## Current Goal
 
-- Frontend authentication system fully integrated
-- Session state managed via Zustand
-- Protected routes enforced
-- Ready for Unit 3 (Diagram Data Model and Storage Schema)
+- Implement relationship management and edge persistence (Unit 7)
+- Enable drawing connections between classes with type-specific arrows
+- Persist relationship data to Supabase
 
 ## Completed
 
@@ -39,15 +38,22 @@ Update this file after every meaningful implementation change.
   - Implemented field and method editors with signature parsing.
   - Integrated "Add Class" button in both sidebar and floating toolbar.
   - Wired node selection and dragging to store mutations.
-  - Added readonly field editing and verified the frontend TypeScript build passes.
+
+- ✅ **Unit 6: UML Validation and Constraints**
+  - Implemented shared validation logic for class names, fields, and methods.
+  - Integrated real-time validation feedback in `ClassEditorPanel`.
+  - Added signature validation for methods with auto-parsing.
+  - Enforced server-side validation using Zod schemas in API routes.
+  - Added store-level semantic checks to prevent invalid UML structures.
+  - Implemented circular inheritance detection.
+  - Verified both frontend and backend type-check/build commands pass.
 
 ## Next Up
 
-- **Unit 6: UML Validation and Constraints**
-  - Implement validation engine for UML rules.
-  - Prevent duplicate class names and method signatures.
-  - Prevent self-inheritance and circular dependencies.
-  - Show validation errors in the form editor.
+- **Unit 7: Relationship Management and Edge Persistence**
+  - Enable dragging edges between nodes.
+  - Relationship type selection (Inheritance, Composition, etc.).
+  - Persisting edges to the database.
 
 ## Open Questions
 
@@ -55,22 +61,7 @@ Update this file after every meaningful implementation change.
 
 ## Architecture Decisions
 
-- Used Zustand for state management (future) — scaffolded store structure
-- Design tokens centralized in `packages/ui` — all apps import from this
-- Monorepo uses pnpm workspaces + Turborepo for incremental builds
-- React Flow canvas will integrate in Unit 4 (currently a placeholder)
-- Java parser service separate from main monorepo (services/java-parser, future)
-
-## Session Notes
-
-- Unit 1 establishes the visual foundation: IDE-like dark theme, fixed layout, semantic token system
-- Unit 2 establishes authentication layer:
-  - Zustand session store owns ONLY user identity (user, isLoading, isAuthenticated)
-  - sessionStore does NOT own diagram state, workspace state, or persistence state (separate stores in future units)
-  - AuthProvider wraps entire app tree to listen for auth changes
-  - ProtectedRoute redirects unauthenticated users to /sign-in
-  - Routes: /sign-in (public), /sign-up (public), /workspace (protected), / (redirect)
-  - User email displayed in TopNav with sign-out button
-- All semantic tokens used throughout auth pages — no raw hex values
-- Dependency direction maintained: App → AuthProvider → AuthService → Supabase SDK
-- Ready for Unit 3 (database schema and backend APIs)
+- **Duplication with Sync**: Canonical UML types and validation logic are duplicated between frontend and backend to maintain isolation while ensuring consistency.
+- **Store-Level Guarding**: Store actions perform semantic validation before committing state changes.
+- **Zod API Contracts**: All diagram update payloads are strictly validated via Zod on the backend.
+- **React Flow as Derived View**: React Flow nodes and edges are strictly derived from the semantic UML model; they are never the source of truth.

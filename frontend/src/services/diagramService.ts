@@ -52,4 +52,24 @@ export class DiagramService {
     if (!result.success) throw new Error(result.error);
     return result.data.diagram;
   }
+
+  static async updateDiagram(
+    token: string,
+    id: string,
+    diagram: UMLDiagram,
+    layout: UMLDiagram['layout'],
+    viewport: UMLDiagram['viewport']
+  ): Promise<void> {
+    const response = await fetch(`${API_URL}/diagrams/${id}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ diagram, layout, viewport })
+    });
+
+    const result = await response.json();
+    if (!result.success) throw new Error(result.error);
+  }
 }
