@@ -8,7 +8,7 @@ This plan uses **GitHub Actions** to build and deploy the UML Architect applicat
 You must have the Resource Group, ACR, and Container Apps Environment created.
 
 ```bash
-RG="rg-uml-architect"
+RG="uml-architect-rg"
 LOCATION="eastus"
 ACR_NAME="acrumlarchitect12345"
 

@@ -45,19 +45,19 @@ jobs:
         uses: azure/container-apps-deploy-action@v2
         with:
           containerAppName: ca-parser
-          resourceGroup: rg-uml-architect
+          resourceGroup: uml-architect-rg
           imageToDeploy: ${{ secrets.ACR_NAME }}.azurecr.io/uml-parser:${{ github.sha }}
 
       - name: Deploy Backend
         uses: azure/container-apps-deploy-action@v2
         with:
           containerAppName: ca-backend
-          resourceGroup: rg-uml-architect
+          resourceGroup: uml-architect-rg
           imageToDeploy: ${{ secrets.ACR_NAME }}.azurecr.io/uml-backend:${{ github.sha }}
 
       - name: Deploy Frontend
         uses: azure/container-apps-deploy-action@v2
         with:
           containerAppName: ca-frontend
-          resourceGroup: rg-uml-architect
+          resourceGroup: uml-architect-rg
           imageToDeploy: ${{ secrets.ACR_NAME }}.azurecr.io/uml-frontend:${{ github.sha }}
