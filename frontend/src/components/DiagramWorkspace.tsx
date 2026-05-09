@@ -1,43 +1,50 @@
+"use client";
+
 import React from 'react';
+import { DiagramCanvas } from '@/features/canvas/DiagramCanvas';
+import { useDiagramHydration } from '@/hooks/useDiagramHydration';
 
-export const DiagramWorkspace: React.FC = () => {
+interface DiagramWorkspaceProps {
+  diagramId?: string;
+}
+
+export const DiagramWorkspace: React.FC<DiagramWorkspaceProps> = ({ diagramId }) => {
+  const { isLoading, error } = useDiagramHydration(diagramId);
+
+  if (error) {
+    return (
+      <main className="flex-1 bg-bg-canvas flex items-center justify-center p-8">
+        <div className="bg-bg-surface-primary border border-status-error rounded-lg p-6 max-w-md text-center">
+          <h3 className="text-text-error font-bold mb-2">Error Loading Diagram</h3>
+          <p className="text-text-secondary text-sm mb-4">{error}</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-bg-surface-tertiary hover:bg-bg-surface-secondary border border-border-primary rounded-md text-text-primary text-xs transition-colors"
+          >
+            Retry
+          </button>
+        </div>
+      </main>
+    );
+  }
+
   return (
-    <main className="flex-1 bg-bg-canvas relative overflow-hidden flex items-center justify-center">
-      {/* Grid Pattern Placeholder */}
-      <div 
-        className="absolute inset-0 opacity-[0.03]" 
-        style={{ 
-          backgroundImage: `radial-gradient(circle, #E6EDF3 1px, transparent 1px)`,
-          backgroundSize: '24px 24px'
-        }} 
-      />
+    <main className="flex-1 bg-bg-canvas relative overflow-hidden flex flex-col">
+      {isLoading ? (
+        <div className="flex-1 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent-primary"></div>
+        </div>
+      ) : (
+        <DiagramCanvas />
+      )}
       
-      <div className="z-10 text-center">
-        <h2 className="text-text-tertiary text-lg font-medium mb-2">Diagram Canvas</h2>
-        <p className="text-text-tertiary opacity-50 text-sm">
-          React Flow renderer will be implemented in Unit 04
-        </p>
-      </div>
-
-      {/* Floating Toolbar Placeholder */}
+      {/* Floating Toolbar Placeholder (to be integrated in Unit 5) */}
       <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-bg-surface-primary border border-border-primary rounded-lg shadow-lg px-2 py-1 flex items-center gap-1 z-30">
         <ToolbarButton label="Select" active />
         <ToolbarButton label="Add Class" />
         <ToolbarButton label="Connect" />
         <div className="w-[1px] h-4 bg-border-primary mx-1" />
         <ToolbarButton label="Auto Layout" />
-      </div>
-
-      {/* Floating Controls Placeholder */}
-      <div className="absolute bottom-4 right-4 flex flex-col gap-2 z-30">
-        <div className="bg-bg-surface-primary border border-border-primary rounded-lg shadow-lg overflow-hidden flex flex-col">
-          <ControlButton label="+" />
-          <div className="h-[1px] bg-border-primary" />
-          <ControlButton label="−" />
-        </div>
-        <div className="bg-bg-surface-primary border border-border-primary rounded-lg shadow-lg p-1">
-          <ControlButton label="⌗" />
-        </div>
       </div>
     </main>
   );
@@ -54,8 +61,3 @@ const ToolbarButton: React.FC<{ label: string; active?: boolean }> = ({ label, a
   </button>
 );
 
-const ControlButton: React.FC<{ label: string }> = ({ label }) => (
-  <button className="w-8 h-8 flex items-center justify-center text-text-secondary hover:bg-bg-surface-tertiary hover:text-text-primary transition-colors">
-    {label}
-  </button>
-);

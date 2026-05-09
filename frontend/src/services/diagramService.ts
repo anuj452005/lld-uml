@@ -1,6 +1,6 @@
 import { UMLDiagram, DiagramSourceType } from '../types/uml';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api/v1';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3005/api/v1';
 
 export class DiagramService {
   /**

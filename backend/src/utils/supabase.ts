@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import dotenv from 'dotenv';
+import ws from 'ws';
 
 dotenv.config();
 
@@ -11,7 +12,14 @@ if (!supabaseUrl || !supabaseServiceKey) {
 }
 
 // Global admin client for operations that bypass RLS or need higher privileges
-export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey);
+export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+  auth: {
+    persistSession: false
+  },
+  realtime: {
+    transport: ws
+  }
+});
 
 /**
  * Creates a scoped Supabase client using the user's JWT.
@@ -24,5 +32,11 @@ export const createScopedClient = (token: string) => {
         Authorization: `Bearer ${token}`,
       },
     },
+    auth: {
+      persistSession: false
+    },
+    realtime: {
+      transport: ws
+    }
   });
 };

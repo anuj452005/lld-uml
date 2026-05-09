@@ -7,7 +7,7 @@ export default async function DiagramEditorPage({ params }: { params: Promise<{ 
   return (
     <>
       <LeftSidebar />
-      <DiagramWorkspace />
+      <DiagramWorkspace diagramId={id} />
     </>
   );
 }

@@ -27,19 +27,19 @@ Update this file after every meaningful implementation change.
   - Implemented frontend `DiagramService` and workspace list page.
   - Enabled creation of new diagrams and navigation to the editor.
 
-## In Progress
-
-- [/] **Unit 4: React Flow Canvas Integration**
-  - Setting up React Flow in the `DiagramWorkspace`.
-  - Implementing the Graph Adapter to transform canonical UML models into React Flow elements.
+- ✅ **Unit 4: React Flow Canvas Integration**
+  - Integrated React Flow in `DiagramWorkspace`.
+  - Implemented Zustand stores for semantic model, layout, and viewport.
+  - Implemented the Graph Adapter/Transformer to derive Flow elements from UML data.
+  - Implemented reload-safe state hydration from the persisted snapshot.
 
 ## Next Up
 
-- **Unit 3: Diagram Data Model and Storage Schema**
-  - Supabase database schema setup (diagrams, diagram_versions, diagram_snapshots tables)
-  - Row-level security (RLS) policies
-  - Backend API scaffolding
-  - Ownership validation logic
+- **Unit 5: Manual Class Creation and Form Editor**
+  - Implement the Class Node renderer with proper UML compartments.
+  - Create the Slide-over Panel for adding/editing classes.
+  - Implement form validation for class names and method signatures.
+  - Trigger model updates and auto-layout placement.
 
 ## Open Questions
 
