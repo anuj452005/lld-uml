@@ -10,11 +10,13 @@
   },
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",
+    "@repo/diagram-engine": "file:../packages/diagram-engine",
     "@repo/parser-client": "file:../packages/parser-client",
     "@repo/persistence": "file:../packages/persistence",
     "@supabase/ssr": "^0.10.3",
     "@supabase/supabase-js": "^2.105.4",
     "clsx": "^2.1.1",
+    "html-to-image": "^1.11.13",
     "lucide-react": "^1.14.0",
     "next": "16.2.6",
     "react": "19.2.4",

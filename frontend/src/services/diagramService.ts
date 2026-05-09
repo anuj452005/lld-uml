@@ -14,6 +14,17 @@ export class DiagramService {
     };
   }
 
+  /**
+   * Helper to handle unauthorized responses
+   */
+  private static handleUnauthorized(response: Response) {
+    if (response.status === 401) {
+      if (typeof window !== 'undefined') {
+        window.location.href = '/sign-in';
+      }
+    }
+  }
+
   static async createDiagram(token: string, name: string, sourceType: DiagramSourceType): Promise<string> {
     const response = await fetch(`${API_URL}/diagrams`, {
       method: 'POST',
@@ -24,6 +35,7 @@ export class DiagramService {
       body: JSON.stringify({ name, sourceType })
     });
 
+    this.handleUnauthorized(response);
     const result = await response.json();
     if (!result.success) throw new Error(result.error);
     return result.data.diagramId;
@@ -36,6 +48,7 @@ export class DiagramService {
       }
     });
 
+    this.handleUnauthorized(response);
     const result = await response.json();
     if (!result.success) throw new Error(result.error);
     return result.data.diagrams;
@@ -48,6 +61,7 @@ export class DiagramService {
       }
     });
 
+    this.handleUnauthorized(response);
     const result = await response.json();
     if (!result.success) throw new Error(result.error);
     return result.data.diagram;
@@ -69,6 +83,7 @@ export class DiagramService {
       body: JSON.stringify({ diagram, layout, viewport })
     });
 
+    this.handleUnauthorized(response);
     const result = await response.json();
     if (!result.success) throw new Error(result.error);
   }

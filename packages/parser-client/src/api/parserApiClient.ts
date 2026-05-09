@@ -1,13 +1,19 @@
 import { ParserRequest, ParserResponse } from '../contracts/parserContracts'
 
-export async function parseJava(source: string): Promise<ParserResponse> {
+export async function parseJava(source: string, baseUrl: string = '/api/v1', token?: string): Promise<ParserResponse> {
   const request: ParserRequest = { source }
 
-  const response = await fetch('/api/v1/parser/java', {
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+  }
+
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`
+  }
+
+  const response = await fetch(`${baseUrl}/parser/java`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers,
     body: JSON.stringify(request),
   })
 
@@ -25,19 +31,34 @@ export async function parseJava(source: string): Promise<ParserResponse> {
       }
     }
 
-    const errorText = await response.text()
+    let errorMessage = `API returned status ${response.status}`;
+    try {
+      const errorJson = await response.json();
+      errorMessage = errorJson.error || errorJson.message || errorMessage;
+    } catch (e) {
+      const errorText = await response.text();
+      errorMessage = errorText.substring(0, 200) || errorMessage;
+    }
+
     return {
       success: false,
       warnings: [],
       errors: [
         {
           code: 'API_ERROR',
-          message: errorText || `API returned status ${response.status}`,
+          message: errorMessage,
         },
       ],
     }
   }
 
   const result = await response.json()
-  return result.data as ParserResponse
+  const data = result.data as ParserResponse
+
+  return {
+    success: data?.success ?? false,
+    diagram: data?.diagram,
+    warnings: data?.warnings ?? [],
+    errors: data?.errors ?? [],
+  }
 }

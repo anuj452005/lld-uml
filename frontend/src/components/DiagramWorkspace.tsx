@@ -6,20 +6,27 @@ import { useDiagramHydration } from '@/hooks/useDiagramHydration';
 import { useAutoSave } from '@/hooks/useAutoSave';
 import { ClassEditorPanel } from '@/features/class-editor/ClassEditorPanel';
 import { useUIStore } from '@/stores/uiStore';
+import { useUMLStore } from '@/stores/umlStore';
 import { Plus } from 'lucide-react';
+import { CanvasSkeleton } from '@/components/ui/LoadingSkeleton';
+import { EmptyCanvasState } from '@/components/ui/EmptyCanvasState';
+import { WorkspaceErrorBoundary } from '@/features/error/WorkspaceErrorBoundary';
+import { ParserErrorBanner } from '@/features/error/ParserErrorBanner';
+import { LocalDraftRecoveryPrompt } from '@/features/recovery/LocalDraftRecoveryPrompt';
 
 interface DiagramWorkspaceProps {
   diagramId?: string;
 }
 
 export const DiagramWorkspace: React.FC<DiagramWorkspaceProps> = ({ diagramId }) => {
-  const { isLoading, isHydrated, error } = useDiagramHydration(diagramId);
+  const { isLoading, isHydrated, error, hasNewerDraft, setHasNewerDraft } = useDiagramHydration(diagramId);
   
   // Activate auto-save when diagram loads
   useAutoSave(diagramId, isHydrated);
 
   const setClassEditorOpen = useUIStore((state) => state.setClassEditorOpen);
   const setSelectedNode = useUIStore((state) => state.setSelectedNode);
+  const diagram = useUMLStore((state) => state.diagram);
 
   if (error) {
     return (
@@ -43,28 +50,38 @@ export const DiagramWorkspace: React.FC<DiagramWorkspaceProps> = ({ diagramId })
     setClassEditorOpen(true);
   };
 
+  const isEmpty = diagram && diagram.classes.length === 0 && diagram.interfaces.length === 0;
+
   return (
-    <main className="flex-1 bg-bg-canvas relative overflow-hidden flex flex-col">
-      {isLoading ? (
-        <div className="flex-1 flex items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent-primary"></div>
+    <WorkspaceErrorBoundary>
+      <main className="flex-1 bg-bg-canvas relative overflow-hidden flex flex-col">
+        {isLoading ? (
+          <CanvasSkeleton />
+        ) : (
+          <>
+            <DiagramCanvas />
+            {isEmpty && <EmptyCanvasState />}
+            <ClassEditorPanel />
+            <ParserErrorBanner />
+            {diagramId && hasNewerDraft && (
+              <LocalDraftRecoveryPrompt 
+                diagramId={diagramId} 
+                onDismiss={() => setHasNewerDraft(false)} 
+              />
+            )}
+          </>
+        )}
+        
+        {/* Floating Toolbar */}
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-bg-surface-primary border border-border-primary rounded-lg shadow-lg px-2 py-1 flex items-center gap-1 z-30">
+          <ToolbarButton label="Select" active />
+          <ToolbarButton label="Add Class" icon={<Plus size={14} />} onClick={handleAddClass} />
+          <ToolbarButton label="Connect" />
+          <div className="w-[1px] h-4 bg-border-primary mx-1" />
+          <ToolbarButton label="Auto Layout" />
         </div>
-      ) : (
-        <>
-          <DiagramCanvas />
-          <ClassEditorPanel />
-        </>
-      )}
-      
-      {/* Floating Toolbar */}
-      <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-bg-surface-primary border border-border-primary rounded-lg shadow-lg px-2 py-1 flex items-center gap-1 z-30">
-        <ToolbarButton label="Select" active />
-        <ToolbarButton label="Add Class" icon={<Plus size={14} />} onClick={handleAddClass} />
-        <ToolbarButton label="Connect" />
-        <div className="w-[1px] h-4 bg-border-primary mx-1" />
-        <ToolbarButton label="Auto Layout" />
-      </div>
-    </main>
+      </main>
+    </WorkspaceErrorBoundary>
   );
 };
 

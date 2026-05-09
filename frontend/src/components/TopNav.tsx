@@ -5,9 +5,11 @@ import { Save, Share2, Settings, User, LogOut, Clock } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { useSessionStore } from '@/stores/sessionStore';
 import { usePersistenceStore } from '@/stores/persistenceStore';
+import { useUMLStore } from '@/stores/umlStore';
 import { SaveVersionModal } from '@/features/persistence/SaveVersionModal';
 import { VersionListPanel } from '@/features/persistence/VersionListPanel';
 import { signOut } from '@/app/(auth)/actions';
+import { ExportMenu } from '@/components/ExportMenu';
 
 export interface TopNavProps {
   diagramId?: string;
@@ -26,6 +28,8 @@ export const TopNav: React.FC<TopNavProps> = ({ diagramId: propDiagramId }) => {
   // Extract diagramId from URL if not provided via props
   const diagramId = propDiagramId || (pathname.includes('/workspace/') ? pathname.split('/workspace/')[1] : undefined);
 
+  const { diagram } = useUMLStore();
+
   // Status badge styling
   const getStatusColor = () => {
     if (saveStatus === 'error') return 'text-status-error';
@@ -42,6 +46,27 @@ export const TopNav: React.FC<TopNavProps> = ({ diagramId: propDiagramId }) => {
     return 'Ready';
   };
 
+  const getSourceTypeBadge = () => {
+    if (!diagram) return null;
+    
+    let label = 'Manual';
+    let styles = 'bg-bg-surface-tertiary text-text-tertiary';
+
+    if (diagram.sourceType === 'java-generated') {
+      label = 'Java Generated';
+      styles = 'bg-accent-primary/10 text-accent-primary border border-accent-primary/20';
+    } else if (diagram.sourceType === 'mixed') {
+      label = 'Modified';
+      styles = 'bg-status-warning/10 text-status-warning border border-status-warning/20';
+    }
+
+    return (
+      <span className={`text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-md ${styles}`}>
+        {label}
+      </span>
+    );
+  };
+
   return (
     <>
       <nav className="h-[56px] w-full bg-bg-surface-primary border-b border-border-primary flex items-center justify-between px-4 z-50">
@@ -53,21 +78,26 @@ export const TopNav: React.FC<TopNavProps> = ({ diagramId: propDiagramId }) => {
             <span className="font-semibold text-text-primary">UML Architect</span>
           </div>
           <div className="h-4 w-[1px] bg-border-primary mx-2" />
-          <div className="flex items-center gap-2 text-text-secondary text-sm">
-            <span>Untitled Diagram</span>
-            <div
-              className={`w-2 h-2 rounded-full ${
-                saveStatus === 'error'
-                  ? 'bg-status-error'
-                  : saveStatus === 'saved'
-                  ? 'bg-status-success'
-                  : saveStatus === 'saving'
-                  ? 'bg-status-warning'
-                  : 'bg-status-warning'
-              }`}
-              title={errorMessage || getStatusText()}
-            />
-            <span className={`text-xs ${getStatusColor()}`}>{getStatusText()}</span>
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-medium text-text-secondary truncate max-w-[200px]">
+              {diagram?.name || 'Untitled Diagram'}
+            </span>
+            {getSourceTypeBadge()}
+            <div className="flex items-center gap-2">
+              <div
+                className={`w-2 h-2 rounded-full ${
+                  saveStatus === 'error'
+                    ? 'bg-status-error'
+                    : saveStatus === 'saved'
+                    ? 'bg-status-success'
+                    : saveStatus === 'saving'
+                    ? 'bg-status-warning'
+                    : 'bg-status-warning'
+                }`}
+                title={errorMessage || getStatusText()}
+              />
+              <span className={`text-[11px] font-medium ${getStatusColor()}`}>{getStatusText()}</span>
+            </div>
           </div>
         </div>
 
@@ -93,9 +123,7 @@ export const TopNav: React.FC<TopNavProps> = ({ diagramId: propDiagramId }) => {
           >
             <Clock size={18} />
           </button>
-          <button className="p-2 hover:bg-bg-surface-tertiary rounded-md text-text-secondary hover:text-text-primary transition-colors">
-            <Share2 size={18} />
-          </button>
+          <ExportMenu />
           <div className="h-4 w-[1px] bg-border-primary mx-1" />
           <button className="p-2 hover:bg-bg-surface-tertiary rounded-md text-text-secondary hover:text-text-primary transition-colors">
             <Settings size={18} />

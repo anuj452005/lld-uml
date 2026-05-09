@@ -33,22 +33,50 @@ router.post('/java', authenticate, async (req: Request, res: Response) => {
     });
   }
 
-  // TODO: Proxy to actual Java Parser service (Unit 10)
-  // For Unit 9, we return a stub success response
-  res.status(200).json({
-    success: true,
-    data: {
+  try {
+    const parserUrl = process.env.JAVA_PARSER_URL || 'http://localhost:8080';
+    console.log(`Forwarding parse request to ${parserUrl}/parse`);
+
+    const response = await fetch(`${parserUrl}/parse`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ source }),
+      signal: AbortSignal.timeout(15000), // 15s timeout
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      return res.status(response.status).json({
+        success: false,
+        error: `Parser service error: ${errorText}`,
+      });
+    }
+
+    const result = await response.json();
+    res.status(200).json({
       success: true,
-      diagram: null, // UI will handle null diagram with "success:true" as a partial or stub state
-      warnings: [
-        {
-          code: 'PARSER_STUB',
-          message: 'The Java Parser service is currently in stub mode. Actual parsing will be enabled in Unit 10.',
-        },
-      ],
-      errors: [],
-    },
-  });
+      data: {
+        success: result.success,
+        ...result.data,
+      },
+    });
+  } catch (error: any) {
+    console.error('Error proxying to Java parser:', error);
+    
+    if (error.name === 'TimeoutError') {
+      return res.status(504).json({
+        success: false,
+        error: 'Parser service timed out (15s)',
+      });
+    }
+
+    res.status(502).json({
+      success: false,
+      error: 'Failed to connect to parser service. Is it running?',
+    });
+  }
 });
 
 export default router;

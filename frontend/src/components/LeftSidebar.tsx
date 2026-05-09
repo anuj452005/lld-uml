@@ -16,6 +16,8 @@ import { twMerge } from 'tailwind-merge';
 import { useUIStore } from '@/stores/uiStore';
 import { JavaEditorPanel } from '@/features/java-editor/JavaEditorPanel';
 
+import { useUMLStore } from '@/stores/umlStore';
+
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
@@ -23,13 +25,31 @@ function cn(...inputs: ClassValue[]) {
 export const LeftSidebar: React.FC = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [activeTab, setActiveTab] = useState<'structure' | 'import'>('structure');
+  const [searchQuery, setSearchQuery] = useState('');
+  
   const setClassEditorOpen = useUIStore((state) => state.setClassEditorOpen);
   const setSelectedNode = useUIStore((state) => state.setSelectedNode);
+  const diagram = useUMLStore((state) => state.diagram);
 
   const handleAddClass = () => {
     setSelectedNode(null);
     setClassEditorOpen(true);
   };
+
+  const handleItemClick = (id: string) => {
+    setSelectedNode(id);
+    // You could also trigger a "center on node" action here
+  };
+
+  const filteredClasses = diagram?.classes.filter(c => 
+    c.name.toLowerCase().includes(searchQuery.toLowerCase())
+  ) || [];
+
+  const filteredInterfaces = diagram?.interfaces.filter(i => 
+    i.name.toLowerCase().includes(searchQuery.toLowerCase())
+  ) || [];
+
+  const relationships = diagram?.relationships || [];
 
   return (
     <aside 
@@ -93,6 +113,8 @@ export const LeftSidebar: React.FC = () => {
               <input 
                 type="text" 
                 placeholder="Filter entities..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full bg-bg-surface-secondary border border-border-primary rounded-md py-1.5 pl-8 pr-3 text-xs text-text-primary focus:outline-none focus:border-border-active transition-colors"
               />
             </div>
@@ -104,10 +126,20 @@ export const LeftSidebar: React.FC = () => {
               title="UML Entities" 
               isCollapsed={isCollapsed}
               defaultOpen={true}
+              count={filteredClasses.length + filteredInterfaces.length}
             >
               <div className="flex flex-col">
-                <SidebarItem label="com.app.User" type="class" />
-                <SidebarItem label="com.app.AuthService" type="interface" />
+                {filteredClasses.map(c => (
+                  <SidebarItem key={c.id} label={c.name} type="class" onClick={() => handleItemClick(c.id)} />
+                ))}
+                {filteredInterfaces.map(i => (
+                  <SidebarItem key={i.id} label={i.name} type="interface" onClick={() => handleItemClick(i.id)} />
+                ))}
+                {filteredClasses.length === 0 && filteredInterfaces.length === 0 && (
+                  <div className="px-4 py-2 text-xs text-text-tertiary italic">
+                    No entities found
+                  </div>
+                )}
               </div>
             </SidebarSection>
 
@@ -115,9 +147,33 @@ export const LeftSidebar: React.FC = () => {
               icon={<Layers size={16} />} 
               title="Relationships" 
               isCollapsed={isCollapsed}
+              count={relationships.length}
             >
-              <div className="px-4 py-2 text-xs text-text-tertiary italic">
-                No relationships defined
+              <div className="flex flex-col">
+                {relationships.map(r => {
+                  const source = diagram?.classes.find(c => c.id === r.sourceId)?.name || 
+                                 diagram?.interfaces.find(i => i.id === r.sourceId)?.name || 'Unknown';
+                  const target = diagram?.classes.find(c => c.id === r.targetId)?.name || 
+                                 diagram?.interfaces.find(i => i.id === r.targetId)?.name || 'Unknown';
+                  
+                  return (
+                    <div key={r.id} className="px-4 py-2 flex flex-col hover:bg-bg-surface-tertiary transition-colors cursor-default border-b border-border-secondary/30 last:border-0">
+                      <div className="flex items-center justify-between gap-2 mb-1">
+                        <span className="text-[10px] uppercase tracking-tighter font-bold text-accent-primary">{r.type}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-[11px] text-text-secondary overflow-hidden">
+                        <span className="truncate flex-1 text-right">{source}</span>
+                        <div className="w-4 h-[1px] bg-border-primary shrink-0" />
+                        <span className="truncate flex-1">{target}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+                {relationships.length === 0 && (
+                  <div className="px-4 py-2 text-xs text-text-tertiary italic">
+                    No relationships defined
+                  </div>
+                )}
               </div>
             </SidebarSection>
           </div>
@@ -157,9 +213,17 @@ interface SidebarSectionProps {
   isCollapsed: boolean;
   children: React.ReactNode;
   defaultOpen?: boolean;
+  count?: number;
 }
 
-const SidebarSection: React.FC<SidebarSectionProps> = ({ icon, title, isCollapsed, children, defaultOpen = false }) => {
+const SidebarSection: React.FC<SidebarSectionProps> = ({ 
+  icon, 
+  title, 
+  isCollapsed, 
+  children, 
+  defaultOpen = false,
+  count
+}) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
   if (isCollapsed) {
@@ -178,6 +242,11 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({ icon, title, isCollapse
       >
         {icon}
         <span className="text-sm font-medium flex-1 text-left">{title}</span>
+        {count !== undefined && count > 0 && (
+          <span className="bg-bg-surface-tertiary text-text-tertiary text-[10px] font-bold px-1.5 py-0.5 rounded-full mr-1">
+            {count}
+          </span>
+        )}
         <ChevronRight size={14} className={cn("transition-transform", isOpen && "rotate-90")} />
       </button>
       {isOpen && <div className="pb-2">{children}</div>}
@@ -185,8 +254,15 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({ icon, title, isCollapse
   );
 };
 
-const SidebarItem: React.FC<{ label: string; type: 'class' | 'interface' }> = ({ label, type }) => (
-  <div className="px-4 py-1.5 flex items-center gap-2 hover:bg-bg-surface-tertiary cursor-pointer group">
+const SidebarItem: React.FC<{ 
+  label: string; 
+  type: 'class' | 'interface';
+  onClick?: () => void;
+}> = ({ label, type, onClick }) => (
+  <div 
+    onClick={onClick}
+    className="px-4 py-1.5 flex items-center gap-2 hover:bg-bg-surface-tertiary cursor-pointer group"
+  >
     <div className={cn(
       "w-2 h-2 rounded-full",
       type === 'class' ? "bg-accent-primary" : "bg-status-success"

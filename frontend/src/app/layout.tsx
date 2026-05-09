@@ -4,6 +4,7 @@ import "./globals.css";
 import { TopNav } from "@/components/TopNav";
 import { BottomStatusBar } from "@/components/BottomStatusBar";
 import { AuthProvider } from "@/providers/AuthProvider";
+import { ToastProvider } from "@/components/ui/ToastProvider";
 
 const inter = Inter({ 
   subsets: ["latin"],
@@ -29,11 +30,13 @@ export default function RootLayout({
     <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
       <body className="h-screen w-screen overflow-hidden flex flex-col bg-bg-canvas text-text-primary">
         <AuthProvider>
-          <TopNav />
-          <div className="flex-1 flex overflow-hidden">
-            {children}
-          </div>
-          <BottomStatusBar />
+          <ToastProvider>
+            <TopNav />
+            <div className="flex-1 flex overflow-hidden">
+              {children}
+            </div>
+            <BottomStatusBar />
+          </ToastProvider>
         </AuthProvider>
       </body>
     </html>

@@ -6,6 +6,7 @@ import { useUMLStore } from '@/stores/umlStore';
 import { useLayoutStore } from '@/stores/layoutStore';
 import { useViewportStore } from '@/stores/viewportStore';
 import { DiagramService } from '@/services/diagramService';
+import { LocalDraftManager } from '@repo/persistence';
 
 /**
  * useDiagramHydration
@@ -17,6 +18,7 @@ export function useDiagramHydration(diagramId: string | undefined) {
   const [isLoading, setIsLoading] = useState(false);
   const [isHydrated, setIsHydrated] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [hasNewerDraft, setHasNewerDraft] = useState(false);
   
   const setDiagram = useUMLStore((state) => state.setDiagram);
   const setNodes = useLayoutStore((state) => state.setNodes);
@@ -42,6 +44,11 @@ export function useDiagramHydration(diagramId: string | undefined) {
         
         const diagram = await DiagramService.getDiagram(token, diagramId);
         
+        // Check for newer local draft
+        if (LocalDraftManager.isDraftNewer(diagramId, diagram.updatedAt)) {
+          setHasNewerDraft(true);
+        }
+
         // Populate Stores
         setDiagram(diagram);
         
@@ -65,5 +72,5 @@ export function useDiagramHydration(diagramId: string | undefined) {
     hydrate();
   }, [diagramId, supabase, setDiagram, setNodes, setViewport]);
 
-  return { isLoading, isHydrated, error };
+  return { isLoading, isHydrated, error, hasNewerDraft, setHasNewerDraft };
 }

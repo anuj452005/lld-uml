@@ -23,6 +23,30 @@ interface UMLStoreState {
  * Owns the canonical UML semantic model.
  * This is the single source of truth for all UML entities (classes, interfaces, relationships).
  */
+/**
+ * Wrapper to mark a diagram as modified when a manual edit occurs.
+ * If the current sourceType is 'java-generated', it transitions to 'mixed'.
+ */
+function markModifiedIfGenerated(state: UMLDiagram): Partial<UMLDiagram> {
+  if (state.sourceType === 'java-generated') {
+    return {
+      sourceType: 'mixed',
+      metadata: {
+        ...state.metadata,
+        isModified: true,
+        lastManualEditAt: new Date().toISOString(),
+      }
+    };
+  }
+  return {
+    metadata: {
+      ...state.metadata,
+      isModified: true,
+      lastManualEditAt: new Date().toISOString(),
+    }
+  };
+}
+
 export const useUMLStore = create<UMLStoreState>((set) => ({
   diagram: null,
   setDiagram: (diagram) => set({ diagram }),
@@ -57,11 +81,13 @@ export const useUMLStore = create<UMLStoreState>((set) => ({
       ]);
     }
 
+    const modifiedFields = markModifiedIfGenerated(state.diagram);
+
     return {
       diagram: {
         ...state.diagram,
+        ...modifiedFields,
         classes: [...state.diagram.classes, cls],
-        metadata: { ...state.diagram.metadata, isModified: true }
       }
     };
   }),
@@ -82,13 +108,15 @@ export const useUMLStore = create<UMLStoreState>((set) => ({
       }
     }
 
+    const modifiedFields = markModifiedIfGenerated(state.diagram);
+
     return {
       diagram: {
         ...state.diagram,
+        ...modifiedFields,
         classes: state.diagram.classes.map((cls) => 
           cls.id === id ? { ...cls, ...updates, updatedAt: new Date().toISOString() } : cls
         ),
-        metadata: { ...state.diagram.metadata, isModified: true }
       }
     };
   }),
@@ -99,14 +127,16 @@ export const useUMLStore = create<UMLStoreState>((set) => ({
     const layoutStore = useLayoutStore.getState();
     layoutStore.setNodes(layoutStore.nodes.filter((node) => node.entityId !== id));
 
+    const modifiedFields = markModifiedIfGenerated(state.diagram);
+
     return {
       diagram: {
         ...state.diagram,
+        ...modifiedFields,
         classes: state.diagram.classes.filter((cls) => cls.id !== id),
         relationships: state.diagram.relationships.filter(
           (rel) => rel.sourceId !== id && rel.targetId !== id
         ),
-        metadata: { ...state.diagram.metadata, isModified: true }
       }
     };
   }),
@@ -125,11 +155,13 @@ export const useUMLStore = create<UMLStoreState>((set) => ({
       createdAt: relationship.createdAt ?? new Date().toISOString(),
     };
 
+    const modifiedFields = markModifiedIfGenerated(state.diagram);
+
     return {
       diagram: {
         ...state.diagram,
+        ...modifiedFields,
         relationships: [...state.diagram.relationships, nextRelationship],
-        metadata: { ...state.diagram.metadata, isModified: true }
       }
     };
   }),
@@ -154,10 +186,12 @@ export const useUMLStore = create<UMLStoreState>((set) => ({
       return state;
     }
 
+    const modifiedFields = markModifiedIfGenerated(state.diagram);
+
     return {
       diagram: {
         ...nextDiagram,
-        metadata: { ...state.diagram.metadata, isModified: true }
+        ...modifiedFields,
       }
     };
   }),
@@ -165,11 +199,13 @@ export const useUMLStore = create<UMLStoreState>((set) => ({
   deleteRelationship: (id) => set((state) => {
     if (!state.diagram) return state;
 
+    const modifiedFields = markModifiedIfGenerated(state.diagram);
+
     return {
       diagram: {
         ...state.diagram,
+        ...modifiedFields,
         relationships: state.diagram.relationships.filter((rel) => rel.id !== id),
-        metadata: { ...state.diagram.metadata, isModified: true }
       }
     };
   }),

@@ -9,6 +9,7 @@ import { useViewportStore } from '@/stores/viewportStore';
 import { usePersistenceStore } from '@/stores/persistenceStore';
 import { PersistenceService } from '@/services/persistenceService';
 import { useShallow } from 'zustand/react/shallow';
+import { LocalDraftManager } from '@repo/persistence';
 
 const AUTO_SAVE_DEBOUNCE_MS = 1500; // 1.5 seconds
 
@@ -83,6 +84,13 @@ export function useAutoSave(diagramId: string | undefined, enabled: boolean = tr
       // Mark as dirty immediately
       setDirty(true);
 
+      // Save local draft as safety net
+      LocalDraftManager.saveDraft(diagramId, {
+        ...diagram,
+        layout: { nodes },
+        viewport,
+      });
+
       // Get fresh token
       const { data: { session } } = await supabase.auth.getSession();
       const token = session?.access_token;
@@ -114,6 +122,9 @@ export function useAutoSave(diagramId: string | undefined, enabled: boolean = tr
             setDirty(false);
             setLastSavedAt(new Date());
             clearError();
+
+            // Success! Clear the local safety draft
+            LocalDraftManager.clearDraft(diagramId);
 
             // Auto-reset to idle after 2 seconds
             setTimeout(() => {

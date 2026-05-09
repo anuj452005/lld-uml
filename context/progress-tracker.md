@@ -4,12 +4,11 @@ Update this file after every meaningful implementation change.
 
 ## Current Phase
 
-- Unit 9 Completed: Java Editor and Parser Contract
+- Unit 12 Completed: Error Handling, Status Surfaces, and UX Hardening
 
 ## Current Goal
 
-- Implement Java parsing logic (Unit 10)
-- Extract UML from Java source code automatically from Java AST
+- Finalize any remaining UX polishing and prepare for final project review.
 
 ## Completed
 
@@ -79,16 +78,40 @@ Update this file after every meaningful implementation change.
   - Implemented structured error and collapsible warning UI components.
   - Verified end-to-end wire protocol between frontend and backend proxy.
 
+- ✅ **Unit 10: Java to UML Parsing and Model Extraction**
+  - Bootstrapped `services/java-parser` with Gradle and JavaParser.
+  - Implemented the `JavaSourceParser` orchestrator for AST traversal.
+  - Developed individual extractors for classes, interfaces, fields, methods, and relationships.
+  - Implemented `AstToUmlTransformer` to map Java AST to the canonical UML model.
+  - Added semantic validation rules (duplicate names, self-inheritance) in `ParserValidator`.
+  - Exposed the parser via a lightweight Javalin-based REST API on port 8080.
+  - Updated the backend API proxy to forward requests to the live Java parser service.
+  - Verified extraction of `extends` and `implements` keywords into UML relationships.
+
+- ✅ **Unit 11: Post-Generation Editing Parity**
+  - Implemented `sourceType` tracking (manual, java-generated, mixed) in `umlStore`.
+  - Created `@repo/diagram-engine` package with grid-based `autoLayoutDiagram` logic.
+  - Integrated auto-layout into `parserService` for fresh imports.
+  - Added source type badges to the workspace UI.
+  - Implemented a regeneration confirmation flow in `JavaEditorPanel` to protect manual edits.
+
+- ✅ **Unit 12: Error Handling, Status Surfaces, and UX Hardening**
+  - Implemented global `ToastProvider` and `Toast` notification system.
+  - Added `CanvasSkeleton` and `ListSkeleton` for improved loading states.
+  - Created `EmptyCanvasState` with "Create First Class" CTA.
+  - Implemented `WorkspaceErrorBoundary` to gracefully handle rendering crashes.
+  - Added `ParserErrorBanner` for prominent parse failure visibility on the canvas.
+  - Developed `LocalDraftManager` in `@repo/persistence` for browser storage drafts.
+  - Implemented `LocalDraftRecoveryPrompt` for restoring work after session loss.
+  - Added automatic 401 Unauthorized handling in `DiagramService`.
+  - Added persistence middleware to `ParserStore` to preserve Java source code across refreshes.
+  - Integrated `html-to-image` and implemented `ExportService` for PNG, JPEG, SVG, and PDF exports.
+
 ## Next Up
 
-- **Unit 10: Java Parser Service Implementation**
-  - Implement the actual Java parsing logic using a Java-based service.
-  - Translate Java AST to canonical UML semantic model.
-  - Handle complex Java structures (inheritance, fields, methods, interfaces).
-
-## Open Questions
-
-- None currently
+- **Project Finalization and Polish**
+  - Final review of all specifications.
+  - Final end-to-end testing of manual + generated workflows.
 
 ## Architecture Decisions
 
@@ -103,3 +126,5 @@ Update this file after every meaningful implementation change.
 - **Contract-First Communication**: Standardized request/response shapes in `@repo/parser-client` ensure type safety across the entire stack.
 - **Stateless Parsing**: The parser takes source code and returns a UML model; it does not manage state or persistence itself.
 - **Preserve Source on Failure**: The editor retains user input on parse failure to allow for manual correction.
+- **One-Way Source Transition**: Diagram `sourceType` transitions from `java-generated` to `mixed` on first manual edit; it never reverts to ensure overwrite warnings are accurate.
+- **Local-First Safety Net**: Every auto-save attempt writes to `localStorage` first as a "draft" before hitting the API, providing offline protection.

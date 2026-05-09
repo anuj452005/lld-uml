@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import { ParserError, ParserWarning } from '@/types/uml';
 
 export type ParseStatus = 'idle' | 'loading' | 'success' | 'error';
@@ -20,25 +21,33 @@ interface ParserStoreState {
  * Owns the lifecycle state of the Java parsing process.
  * Does NOT directly mutate the UML store.
  */
-export const useParserStore = create<ParserStoreState>((set) => ({
-  status: 'idle',
-  warnings: [],
-  errors: [],
-  lastParsedSource: null,
+export const useParserStore = create<ParserStoreState>()(
+  persist(
+    (set) => ({
+      status: 'idle',
+      warnings: [],
+      errors: [],
+      lastParsedSource: null,
 
-  setStatus: (status) => set({ status }),
+      setStatus: (status) => set({ status }),
 
-  setResult: (warnings, errors) => set({ 
-    warnings, 
-    errors,
-    status: errors.length > 0 ? 'error' : 'success'
-  }),
+      setResult: (warnings, errors) => set({ 
+        warnings: warnings || [], 
+        errors: errors || [],
+        status: (errors && errors.length > 0) ? 'error' : 'success'
+      }),
 
-  setLastParsedSource: (source) => set({ lastParsedSource: source }),
+      setLastParsedSource: (source) => set({ lastParsedSource: source }),
 
-  clearResult: () => set({ 
-    warnings: [], 
-    errors: [], 
-    status: 'idle' 
-  }),
-}));
+      clearResult: () => set({ 
+        warnings: [], 
+        errors: [], 
+        status: 'idle' 
+      }),
+    }),
+    {
+      name: 'uml_parser_storage',
+      partialize: (state) => ({ lastParsedSource: state.lastParsedSource }),
+    }
+  )
+);
