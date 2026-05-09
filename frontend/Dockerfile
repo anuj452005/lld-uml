@@ -2,18 +2,16 @@
 FROM node:20-slim AS build
 WORKDIR /app
 
-# Copy workspace packages (needed for file: dependencies)
+# Copy all workspace files
+COPY package*.json ./
 COPY packages ./packages
+COPY frontend ./frontend
 
-# Copy frontend config
-COPY frontend/package*.json ./frontend/
+# Install dependencies for the whole workspace (if applicable) or just frontend
 WORKDIR /app/frontend
 RUN npm install
 
-# Copy source and build
-WORKDIR /app
-COPY frontend ./frontend
-WORKDIR /app/frontend
+# Build the frontend
 RUN npm run build
 
 # Run stage
