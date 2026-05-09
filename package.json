@@ -1,0 +1,9 @@
+{
+  "name": "uml-architect-root",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "backend",
+    "packages/*"
+  ]
+}

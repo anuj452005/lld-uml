@@ -21,9 +21,9 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"],
-      "@repo/persistence": ["../packages/persistence/src"],
-      "@repo/diagram-engine": ["../packages/diagram-engine/src"],
-      "@repo/parser-client": ["../packages/parser-client/src"]
+      "@repo/persistence": ["../packages/persistence/src/index.ts"],
+      "@repo/diagram-engine": ["../packages/diagram-engine/src/index.ts"],
+      "@repo/parser-client": ["../packages/parser-client/src/index.ts"]
     }
   },
   "include": [
