@@ -14,7 +14,7 @@ if (!supabaseUrl || !supabaseServiceKey) {
 // Global admin client for operations that bypass RLS or need higher privileges
 export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
   realtime: {
-    transport: ws,
+    transport: ws as any,
   },
   auth: {
     persistSession: false
@@ -28,7 +28,7 @@ export const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
 export const createScopedClient = (token: string) => {
   return createClient(supabaseUrl, supabaseServiceKey, {
     realtime: {
-      transport: ws,
+      transport: ws as any,
     },
     global: {
       headers: {
