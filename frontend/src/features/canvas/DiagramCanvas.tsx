@@ -18,10 +18,10 @@ import { useLayoutStore } from '@/stores/layoutStore';
 import { useViewportStore } from '@/stores/viewportStore';
 import { useUIStore } from '@/stores/uiStore';
 import { transformDiagramToFlow } from '@/lib/diagram-engine/transformers/transformDiagramToFlow';
-import { PlaceholderNode } from './PlaceholderNode';
+import { UMLClassNode } from './UMLClassNode';
 
 const nodeTypes = {
-  umlNode: PlaceholderNode,
+  umlNode: UMLClassNode,
 };
 
 /**
@@ -36,6 +36,7 @@ export const DiagramCanvas: React.FC = () => {
   const viewport = useViewportStore(useShallow((state) => ({ x: state.x, y: state.y, zoom: state.zoom })));
   
   const setSelectedNode = useUIStore((state) => state.setSelectedNode);
+  const setClassEditorOpen = useUIStore((state) => state.setClassEditorOpen);
   const updateNodePosition = useLayoutStore((state) => state.updateNodePosition);
 
   // Derive Flow elements from Semantic model + Layout
@@ -61,6 +62,12 @@ export const DiagramCanvas: React.FC = () => {
     updateNodePosition(node.id, node.position.x, node.position.y);
   }, [updateNodePosition]);
 
+  // Handle node click to open editor
+  const onNodeClick = useCallback((_: React.MouseEvent, node: Node) => {
+    setSelectedNode(node.id);
+    setClassEditorOpen(true);
+  }, [setSelectedNode, setClassEditorOpen]);
+
   // Handle selection
   const onSelectionChange = useCallback(({ nodes }: { nodes: Node[] }) => {
     setSelectedNode(nodes.length > 0 ? nodes[0].id : null);
@@ -82,6 +89,7 @@ export const DiagramCanvas: React.FC = () => {
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onNodeDragStop={onNodeDragStop}
+        onNodeClick={onNodeClick}
         onSelectionChange={onSelectionChange}
         nodeTypes={nodeTypes}
         defaultViewport={viewport}

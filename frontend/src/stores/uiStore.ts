@@ -3,8 +3,10 @@ import { create } from 'zustand';
 interface UIStoreState {
   selectedNodeId: string | null;
   selectedEdgeId: string | null;
+  isClassEditorOpen: boolean;
   setSelectedNode: (id: string | null) => void;
   setSelectedEdge: (id: string | null) => void;
+  setClassEditorOpen: (isOpen: boolean) => void;
 }
 
 /**
@@ -15,6 +17,8 @@ interface UIStoreState {
 export const useUIStore = create<UIStoreState>((set) => ({
   selectedNodeId: null,
   selectedEdgeId: null,
+  isClassEditorOpen: false,
   setSelectedNode: (id) => set({ selectedNodeId: id }),
   setSelectedEdge: (id) => set({ selectedEdgeId: id }),
+  setClassEditorOpen: (isOpen) => set({ isClassEditorOpen: isOpen }),
 }));

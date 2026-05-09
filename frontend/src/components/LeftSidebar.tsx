@@ -8,10 +8,12 @@ import {
   Layers, 
   Code2, 
   Database,
-  Search
+  Search,
+  Plus
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { useUIStore } from '@/stores/uiStore';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -19,6 +21,13 @@ function cn(...inputs: ClassValue[]) {
 
 export const LeftSidebar: React.FC = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const setClassEditorOpen = useUIStore((state) => state.setClassEditorOpen);
+  const setSelectedNode = useUIStore((state) => state.setSelectedNode);
+
+  const handleAddClass = () => {
+    setSelectedNode(null);
+    setClassEditorOpen(true);
+  };
 
   return (
     <aside 
@@ -36,6 +45,18 @@ export const LeftSidebar: React.FC = () => {
           {isCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
         </button>
       </div>
+
+      {!isCollapsed && (
+        <div className="px-3 py-3 border-b border-border-secondary">
+          <button 
+            onClick={handleAddClass}
+            className="w-full flex items-center justify-center gap-2 bg-accent-primary hover:bg-accent-primary-hover text-text-inverse py-2 rounded-md text-xs font-semibold transition-colors shadow-sm"
+          >
+            <Plus size={14} />
+            Add Class
+          </button>
+        </div>
+      )}
 
       {!isCollapsed && (
         <div className="px-3 py-2">
@@ -57,9 +78,11 @@ export const LeftSidebar: React.FC = () => {
           isCollapsed={isCollapsed}
           defaultOpen={true}
         >
-          <SidebarItem label="com.app.User" type="class" />
-          <SidebarItem label="com.app.AuthService" type="interface" />
-          <SidebarItem label="com.app.Repository" type="class" />
+          <div className="flex flex-col">
+            {/* Sidebar items will be populated from store in future units */}
+            <SidebarItem label="com.app.User" type="class" />
+            <SidebarItem label="com.app.AuthService" type="interface" />
+          </div>
         </SidebarSection>
 
         <SidebarSection 

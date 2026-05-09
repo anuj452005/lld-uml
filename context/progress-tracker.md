@@ -33,13 +33,21 @@ Update this file after every meaningful implementation change.
   - Implemented the Graph Adapter/Transformer to derive Flow elements from UML data.
   - Implemented reload-safe state hydration from the persisted snapshot.
 
+- ✅ **Unit 5: Manual Class Creation and Form Editor**
+  - Implemented the `UMLClassNode` renderer with title, fields, and methods compartments.
+  - Created the slide-over `ClassEditorPanel` with structured forms.
+  - Implemented field and method editors with signature parsing.
+  - Integrated "Add Class" button in both sidebar and floating toolbar.
+  - Wired node selection and dragging to store mutations.
+  - Added readonly field editing and verified the frontend TypeScript build passes.
+
 ## Next Up
 
-- **Unit 5: Manual Class Creation and Form Editor**
-  - Implement the Class Node renderer with proper UML compartments.
-  - Create the Slide-over Panel for adding/editing classes.
-  - Implement form validation for class names and method signatures.
-  - Trigger model updates and auto-layout placement.
+- **Unit 6: UML Validation and Constraints**
+  - Implement validation engine for UML rules.
+  - Prevent duplicate class names and method signatures.
+  - Prevent self-inheritance and circular dependencies.
+  - Show validation errors in the form editor.
 
 ## Open Questions
 

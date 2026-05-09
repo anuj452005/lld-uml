@@ -3,6 +3,9 @@
 import React from 'react';
 import { DiagramCanvas } from '@/features/canvas/DiagramCanvas';
 import { useDiagramHydration } from '@/hooks/useDiagramHydration';
+import { ClassEditorPanel } from '@/features/class-editor/ClassEditorPanel';
+import { useUIStore } from '@/stores/uiStore';
+import { Plus } from 'lucide-react';
 
 interface DiagramWorkspaceProps {
   diagramId?: string;
@@ -10,6 +13,9 @@ interface DiagramWorkspaceProps {
 
 export const DiagramWorkspace: React.FC<DiagramWorkspaceProps> = ({ diagramId }) => {
   const { isLoading, error } = useDiagramHydration(diagramId);
+
+  const setClassEditorOpen = useUIStore((state) => state.setClassEditorOpen);
+  const setSelectedNode = useUIStore((state) => state.setSelectedNode);
 
   if (error) {
     return (
@@ -28,6 +34,11 @@ export const DiagramWorkspace: React.FC<DiagramWorkspaceProps> = ({ diagramId })
     );
   }
 
+  const handleAddClass = () => {
+    setSelectedNode(null);
+    setClassEditorOpen(true);
+  };
+
   return (
     <main className="flex-1 bg-bg-canvas relative overflow-hidden flex flex-col">
       {isLoading ? (
@@ -35,13 +46,16 @@ export const DiagramWorkspace: React.FC<DiagramWorkspaceProps> = ({ diagramId })
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-accent-primary"></div>
         </div>
       ) : (
-        <DiagramCanvas />
+        <>
+          <DiagramCanvas />
+          <ClassEditorPanel />
+        </>
       )}
       
-      {/* Floating Toolbar Placeholder (to be integrated in Unit 5) */}
+      {/* Floating Toolbar */}
       <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-bg-surface-primary border border-border-primary rounded-lg shadow-lg px-2 py-1 flex items-center gap-1 z-30">
         <ToolbarButton label="Select" active />
-        <ToolbarButton label="Add Class" />
+        <ToolbarButton label="Add Class" icon={<Plus size={14} />} onClick={handleAddClass} />
         <ToolbarButton label="Connect" />
         <div className="w-[1px] h-4 bg-border-primary mx-1" />
         <ToolbarButton label="Auto Layout" />
@@ -50,13 +64,24 @@ export const DiagramWorkspace: React.FC<DiagramWorkspaceProps> = ({ diagramId })
   );
 };
 
-const ToolbarButton: React.FC<{ label: string; active?: boolean }> = ({ label, active }) => (
-  <button className={`
-    px-3 py-1.5 rounded-md text-xs font-medium transition-colors
-    ${active 
-      ? 'bg-accent-primary text-text-inverse' 
-      : 'text-text-secondary hover:bg-bg-surface-tertiary hover:text-text-primary'}
-  `}>
+interface ToolbarButtonProps {
+  label: string;
+  active?: boolean;
+  icon?: React.ReactNode;
+  onClick?: () => void;
+}
+
+const ToolbarButton: React.FC<ToolbarButtonProps> = ({ label, active, icon, onClick }) => (
+  <button 
+    onClick={onClick}
+    className={`
+      flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors
+      ${active 
+        ? 'bg-accent-primary text-text-inverse' 
+        : 'text-text-secondary hover:bg-bg-surface-tertiary hover:text-text-primary'}
+    `}
+  >
+    {icon}
     {label}
   </button>
 );
