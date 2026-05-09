@@ -46,7 +46,7 @@ I have created the workflow file at `.github/workflows/deploy.yml`.
 
 **To trigger the deployment:**
 1. Commit the `.github/workflows/deploy.yml` file.
-2. Push your code to the `main` branch.
+2. Push your code to the `master` branch.
 3. Go to the **Actions** tab in GitHub to watch the build.
 
 ---
