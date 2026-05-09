@@ -13,6 +13,7 @@ public class ParserApplication {
         Javalin app = Javalin.create(config -> {
             config.router.mount(router -> {
                 router.post("/parse", ParserController::handleParse);
+                router.get("/health", ctx -> ctx.result("ok"));
             });
             config.requestLogger.http((ctx, ms) -> {
                 logger.info("Request: {} {} - {}ms", ctx.method(), ctx.path(), ms);

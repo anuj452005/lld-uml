@@ -1,0 +1,63 @@
+name: Deploy to Azure Container Apps
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Login to ACR
+        uses: azure/docker-login@v2
+        with:
+          login-server: ${{ secrets.ACR_NAME }}.azurecr.io
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+
+      # Build and Push Images on GitHub Runner
+      - name: Build and Push Java Parser
+        run: |
+          docker build -t ${{ secrets.ACR_NAME }}.azurecr.io/uml-parser:${{ github.sha }} ./services/java-parser
+          docker push ${{ secrets.ACR_NAME }}.azurecr.io/uml-parser:${{ github.sha }}
+
+      - name: Build and Push Backend
+        run: |
+          docker build -t ${{ secrets.ACR_NAME }}.azurecr.io/uml-backend:${{ github.sha }} ./backend
+          docker push ${{ secrets.ACR_NAME }}.azurecr.io/uml-backend:${{ github.sha }}
+
+      - name: Build and Push Frontend
+        run: |
+          docker build -t ${{ secrets.ACR_NAME }}.azurecr.io/uml-frontend:${{ github.sha }} -f frontend/Dockerfile .
+          docker push ${{ secrets.ACR_NAME }}.azurecr.io/uml-frontend:${{ github.sha }}
+
+      # Deploy to Azure Container Apps
+      - name: Deploy Java Parser
+        uses: azure/container-apps-deploy-action@v2
+        with:
+          containerAppName: ca-parser
+          resourceGroup: rg-uml-architect
+          imageToDeploy: ${{ secrets.ACR_NAME }}.azurecr.io/uml-parser:${{ github.sha }}
+
+      - name: Deploy Backend
+        uses: azure/container-apps-deploy-action@v2
+        with:
+          containerAppName: ca-backend
+          resourceGroup: rg-uml-architect
+          imageToDeploy: ${{ secrets.ACR_NAME }}.azurecr.io/uml-backend:${{ github.sha }}
+
+      - name: Deploy Frontend
+        uses: azure/container-apps-deploy-action@v2
+        with:
+          containerAppName: ca-frontend
+          resourceGroup: rg-uml-architect
+          imageToDeploy: ${{ secrets.ACR_NAME }}.azurecr.io/uml-frontend:${{ github.sha }}
