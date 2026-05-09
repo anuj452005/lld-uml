@@ -9,6 +9,7 @@ import ReactFlow, {
   useEdgesState,
   Node,
   Edge,
+  Connection,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { useShallow } from 'zustand/react/shallow';
@@ -18,6 +19,10 @@ import { useLayoutStore } from '@/stores/layoutStore';
 import { useViewportStore } from '@/stores/viewportStore';
 import { useUIStore } from '@/stores/uiStore';
 import { transformDiagramToFlow } from '@/lib/diagram-engine/transformers/transformDiagramToFlow';
+import { edgeTypes } from '@/components/canvas/edgeTypes';
+import { RelationshipTypeSelectorModal } from '@/features/relationship-editor/RelationshipTypeSelectorModal';
+import { RelationshipEditorPanel } from '@/features/relationship-editor/RelationshipEditorPanel';
+import { useRelationshipEditor } from '@/features/relationship-editor/useRelationshipEditor';
 import { UMLClassNode } from './UMLClassNode';
 
 const nodeTypes = {
@@ -37,7 +42,25 @@ export const DiagramCanvas: React.FC = () => {
   
   const setSelectedNode = useUIStore((state) => state.setSelectedNode);
   const setClassEditorOpen = useUIStore((state) => state.setClassEditorOpen);
+  const setSelectedEdge = useUIStore((state) => state.setSelectedEdge);
   const updateNodePosition = useLayoutStore((state) => state.updateNodePosition);
+  const {
+    isTypeSelectorOpen,
+    isEditorOpen,
+    draftType,
+    draftLabel,
+    relationshipError,
+    openRelationshipTypeSelector,
+    cancelRelationshipTypeSelector,
+    selectRelationshipType,
+    openRelationshipEditor,
+    closeRelationshipEditor,
+    setDraftType,
+    setDraftLabel,
+    saveRelationship,
+    deleteRelationship,
+    clearRelationshipError,
+  } = useRelationshipEditor();
 
   // Derive Flow elements from Semantic model + Layout
   const { nodes: initialNodes, edges: initialEdges } = useMemo(() => {
@@ -57,21 +80,42 @@ export const DiagramCanvas: React.FC = () => {
     setEdges(initialEdges);
   }, [initialEdges, setEdges]);
 
+  const setViewport = useViewportStore((state) => state.setViewport);
+
   // Handle node drag stop to persist position
   const onNodeDragStop = useCallback((_: React.MouseEvent, node: Node) => {
     updateNodePosition(node.id, node.position.x, node.position.y);
   }, [updateNodePosition]);
 
+  // Handle viewport change
+  const onMoveEnd = useCallback((_: any, viewport: { x: number; y: number; zoom: number }) => {
+    setViewport(viewport);
+  }, [setViewport]);
+
   // Handle node click to open editor
   const onNodeClick = useCallback((_: React.MouseEvent, node: Node) => {
+    closeRelationshipEditor();
     setSelectedNode(node.id);
     setClassEditorOpen(true);
-  }, [setSelectedNode, setClassEditorOpen]);
+  }, [closeRelationshipEditor, setSelectedNode, setClassEditorOpen]);
+
+  const onConnect = useCallback((connection: Connection) => {
+    openRelationshipTypeSelector(connection);
+    clearRelationshipError();
+  }, [clearRelationshipError, openRelationshipTypeSelector]);
+
+  const onEdgeClick = useCallback((_: React.MouseEvent, edge: Edge) => {
+    setSelectedNode(null);
+    setClassEditorOpen(false);
+    setSelectedEdge(edge.id);
+    openRelationshipEditor(edge.id);
+  }, [openRelationshipEditor, setClassEditorOpen, setSelectedEdge, setSelectedNode]);
 
   // Handle selection
-  const onSelectionChange = useCallback(({ nodes }: { nodes: Node[] }) => {
+  const onSelectionChange = useCallback(({ nodes, edges }: { nodes: Node[]; edges: Edge[] }) => {
     setSelectedNode(nodes.length > 0 ? nodes[0].id : null);
-  }, [setSelectedNode]);
+    setSelectedEdge(edges.length > 0 ? edges[0].id : null);
+  }, [setSelectedEdge, setSelectedNode]);
 
   if (!diagram) {
     return (
@@ -88,10 +132,14 @@ export const DiagramCanvas: React.FC = () => {
         edges={edges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
+        onConnect={onConnect}
         onNodeDragStop={onNodeDragStop}
         onNodeClick={onNodeClick}
+        onEdgeClick={onEdgeClick}
         onSelectionChange={onSelectionChange}
+        onMoveEnd={onMoveEnd}
         nodeTypes={nodeTypes}
+        edgeTypes={edgeTypes}
         defaultViewport={viewport}
         minZoom={0.2}
         maxZoom={2.5}
@@ -120,6 +168,25 @@ export const DiagramCanvas: React.FC = () => {
           </div>
         </div>
       )}
+
+      <RelationshipTypeSelectorModal
+        isOpen={isTypeSelectorOpen}
+        errorMessage={relationshipError}
+        onCancel={cancelRelationshipTypeSelector}
+        onSelect={selectRelationshipType}
+      />
+
+      <RelationshipEditorPanel
+        isOpen={isEditorOpen}
+        type={draftType}
+        label={draftLabel}
+        errorMessage={relationshipError}
+        onTypeChange={setDraftType}
+        onLabelChange={setDraftLabel}
+        onSave={saveRelationship}
+        onDelete={deleteRelationship}
+        onCancel={closeRelationshipEditor}
+      />
     </div>
   );
 };

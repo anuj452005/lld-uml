@@ -14,6 +14,7 @@ import {
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { useUIStore } from '@/stores/uiStore';
+import { JavaEditorPanel } from '@/features/java-editor/JavaEditorPanel';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -21,6 +22,7 @@ function cn(...inputs: ClassValue[]) {
 
 export const LeftSidebar: React.FC = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [activeTab, setActiveTab] = useState<'structure' | 'import'>('structure');
   const setClassEditorOpen = useUIStore((state) => state.setClassEditorOpen);
   const setSelectedNode = useUIStore((state) => state.setSelectedNode);
 
@@ -33,7 +35,7 @@ export const LeftSidebar: React.FC = () => {
     <aside 
       className={cn(
         "h-full bg-bg-surface-primary border-r border-border-primary transition-all duration-300 flex flex-col relative z-40",
-        isCollapsed ? "w-[48px]" : "w-[280px]"
+        isCollapsed ? "w-[48px]" : "w-[320px]"
       )}
     >
       <div className="flex items-center justify-between p-3 border-b border-border-primary min-h-[56px]">
@@ -47,64 +49,94 @@ export const LeftSidebar: React.FC = () => {
       </div>
 
       {!isCollapsed && (
-        <div className="px-3 py-3 border-b border-border-secondary">
-          <button 
-            onClick={handleAddClass}
-            className="w-full flex items-center justify-center gap-2 bg-accent-primary hover:bg-accent-primary-hover text-text-inverse py-2 rounded-md text-xs font-semibold transition-colors shadow-sm"
+        <div className="flex border-b border-border-primary">
+          <button
+            onClick={() => setActiveTab('structure')}
+            className={cn(
+              "flex-1 py-2 text-xs font-semibold transition-colors border-b-2",
+              activeTab === 'structure' 
+                ? "text-accent-primary border-accent-primary bg-bg-surface-secondary" 
+                : "text-text-tertiary border-transparent hover:text-text-secondary"
+            )}
           >
-            <Plus size={14} />
-            Add Class
+            Structure
+          </button>
+          <button
+            onClick={() => setActiveTab('import')}
+            className={cn(
+              "flex-1 py-2 text-xs font-semibold transition-colors border-b-2",
+              activeTab === 'import' 
+                ? "text-accent-primary border-accent-primary bg-bg-surface-secondary" 
+                : "text-text-tertiary border-transparent hover:text-text-secondary"
+            )}
+          >
+            Code Import
           </button>
         </div>
       )}
 
-      {!isCollapsed && (
-        <div className="px-3 py-2">
-          <div className="relative">
-            <Search className="absolute left-2 top-1/2 -translate-y-1/2 text-text-tertiary" size={14} />
-            <input 
-              type="text" 
-              placeholder="Filter entities..."
-              className="w-full bg-bg-surface-secondary border border-border-primary rounded-md py-1.5 pl-8 pr-3 text-xs text-text-primary focus:outline-none focus:border-border-active transition-colors"
-            />
+      {!isCollapsed && activeTab === 'structure' && (
+        <>
+          <div className="px-3 py-3 border-b border-border-secondary">
+            <button 
+              onClick={handleAddClass}
+              className="w-full flex items-center justify-center gap-2 bg-accent-primary hover:bg-accent-primary-hover text-text-inverse py-2 rounded-md text-xs font-semibold transition-colors shadow-sm"
+            >
+              <Plus size={14} />
+              Add Class
+            </button>
           </div>
+
+          <div className="px-3 py-2">
+            <div className="relative">
+              <Search className="absolute left-2 top-1/2 -translate-y-1/2 text-text-tertiary" size={14} />
+              <input 
+                type="text" 
+                placeholder="Filter entities..."
+                className="w-full bg-bg-surface-secondary border border-border-primary rounded-md py-1.5 pl-8 pr-3 text-xs text-text-primary focus:outline-none focus:border-border-active transition-colors"
+              />
+            </div>
+          </div>
+
+          <div className="flex-1 overflow-y-auto">
+            <SidebarSection 
+              icon={<Box size={16} />} 
+              title="UML Entities" 
+              isCollapsed={isCollapsed}
+              defaultOpen={true}
+            >
+              <div className="flex flex-col">
+                <SidebarItem label="com.app.User" type="class" />
+                <SidebarItem label="com.app.AuthService" type="interface" />
+              </div>
+            </SidebarSection>
+
+            <SidebarSection 
+              icon={<Layers size={16} />} 
+              title="Relationships" 
+              isCollapsed={isCollapsed}
+            >
+              <div className="px-4 py-2 text-xs text-text-tertiary italic">
+                No relationships defined
+              </div>
+            </SidebarSection>
+          </div>
+        </>
+      )}
+
+      {!isCollapsed && activeTab === 'import' && (
+        <div className="flex-1 overflow-hidden">
+          <JavaEditorPanel />
         </div>
       )}
 
-      <div className="flex-1 overflow-y-auto">
-        <SidebarSection 
-          icon={<Box size={16} />} 
-          title="UML Entities" 
-          isCollapsed={isCollapsed}
-          defaultOpen={true}
-        >
-          <div className="flex flex-col">
-            {/* Sidebar items will be populated from store in future units */}
-            <SidebarItem label="com.app.User" type="class" />
-            <SidebarItem label="com.app.AuthService" type="interface" />
-          </div>
-        </SidebarSection>
-
-        <SidebarSection 
-          icon={<Layers size={16} />} 
-          title="Relationships" 
-          isCollapsed={isCollapsed}
-        >
-          <div className="px-4 py-2 text-xs text-text-tertiary italic">
-            No relationships defined
-          </div>
-        </SidebarSection>
-
-        <SidebarSection 
-          icon={<Code2 size={16} />} 
-          title="Java Source" 
-          isCollapsed={isCollapsed}
-        >
-          <div className="px-4 py-2 text-xs text-text-tertiary italic">
-            Paste code to parse
-          </div>
-        </SidebarSection>
-      </div>
+      {isCollapsed && (
+        <div className="flex-1 flex flex-col items-center py-4 gap-4">
+          <Box size={20} className="text-text-tertiary hover:text-accent-primary cursor-pointer" onClick={() => setIsCollapsed(false)} />
+          <Layers size={20} className="text-text-tertiary hover:text-accent-primary cursor-pointer" onClick={() => setIsCollapsed(false)} />
+          <Code2 size={20} className="text-text-tertiary hover:text-accent-primary cursor-pointer" onClick={() => { setIsCollapsed(false); setActiveTab('import'); }} />
+        </div>
+      )}
 
       <div className="mt-auto border-t border-border-primary p-2">
         <div className={cn(

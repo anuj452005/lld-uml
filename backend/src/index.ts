@@ -2,6 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import diagramRoutes from './routes/diagramRoutes.js';
+import versionsRoutes from './routes/versionsRoutes.js';
+import parserRoutes from './routes/parserRoutes.js';
 
 dotenv.config();
 
@@ -13,6 +15,8 @@ app.use(express.json());
 
 // Routes
 app.use('/api/v1/diagrams', diagramRoutes);
+app.use('/api/v1/versions', versionsRoutes);
+app.use('/api/v1/parser', parserRoutes);
 
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });

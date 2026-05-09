@@ -3,6 +3,7 @@
 import React from 'react';
 import { DiagramCanvas } from '@/features/canvas/DiagramCanvas';
 import { useDiagramHydration } from '@/hooks/useDiagramHydration';
+import { useAutoSave } from '@/hooks/useAutoSave';
 import { ClassEditorPanel } from '@/features/class-editor/ClassEditorPanel';
 import { useUIStore } from '@/stores/uiStore';
 import { Plus } from 'lucide-react';
@@ -12,7 +13,10 @@ interface DiagramWorkspaceProps {
 }
 
 export const DiagramWorkspace: React.FC<DiagramWorkspaceProps> = ({ diagramId }) => {
-  const { isLoading, error } = useDiagramHydration(diagramId);
+  const { isLoading, isHydrated, error } = useDiagramHydration(diagramId);
+  
+  // Activate auto-save when diagram loads
+  useAutoSave(diagramId, isHydrated);
 
   const setClassEditorOpen = useUIStore((state) => state.setClassEditorOpen);
   const setSelectedNode = useUIStore((state) => state.setSelectedNode);

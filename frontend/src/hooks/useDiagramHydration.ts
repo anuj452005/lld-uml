@@ -15,6 +15,7 @@ import { DiagramService } from '@/services/diagramService';
  */
 export function useDiagramHydration(diagramId: string | undefined) {
   const [isLoading, setIsLoading] = useState(false);
+  const [isHydrated, setIsHydrated] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
   const setDiagram = useUMLStore((state) => state.setDiagram);
@@ -28,6 +29,7 @@ export function useDiagramHydration(diagramId: string | undefined) {
       if (!diagramId) return;
       
       setIsLoading(true);
+      setIsHydrated(false);
       setError(null);
       
       try {
@@ -51,6 +53,7 @@ export function useDiagramHydration(diagramId: string | undefined) {
           setViewport(diagram.viewport);
         }
         
+        setIsHydrated(true);
       } catch (err: any) {
         console.error('Hydration failed:', err);
         setError(err.message || 'Failed to load diagram');
@@ -62,5 +65,5 @@ export function useDiagramHydration(diagramId: string | undefined) {
     hydrate();
   }, [diagramId, supabase, setDiagram, setNodes, setViewport]);
 
-  return { isLoading, error };
+  return { isLoading, isHydrated, error };
 }

@@ -1,5 +1,10 @@
-import { Node, Edge, MarkerType } from 'reactflow';
-import { UMLDiagram, DiagramNodeLayout, UMLRelationship } from '@/types/uml';
+import { Node, Edge } from 'reactflow';
+import { UMLDiagram, DiagramNodeLayout, UMLRelationshipType } from '@/types/uml';
+
+interface RelationshipEdgeData {
+  relType: UMLRelationshipType;
+  label?: string;
+}
 
 /**
  * transformDiagramToFlow
@@ -48,57 +53,17 @@ export function transformDiagramToFlow(
   ];
 
   // 2. Transform Relationships into Edges
-  const edges: Edge[] = diagram.relationships.map((rel) => ({
+  const edges: Edge<RelationshipEdgeData>[] = diagram.relationships.map((rel) => ({
     id: rel.id,
     source: rel.sourceId,
     target: rel.targetId,
+    type: rel.type,
     label: rel.label,
-    type: 'umlEdge', // Custom edge type to be implemented later
-    markerEnd: getMarkerEnd(rel.type),
-    style: getEdgeStyle(rel.type),
+    data: {
+      relType: rel.type,
+      label: rel.label,
+    },
   }));
 
   return { nodes, edges };
-}
-
-/**
- * Maps UML relationship types to React Flow markers
- */
-function getMarkerEnd(type: UMLRelationship['type']) {
-  switch (type) {
-    case 'inheritance':
-    case 'realization':
-      return {
-        type: MarkerType.ArrowClosed,
-        color: '#6E7681', // diagram.edge.default
-      };
-    case 'composition':
-      return {
-        type: MarkerType.ArrowClosed,
-        color: '#6E7681',
-      };
-    default:
-      return {
-        type: MarkerType.Arrow,
-        color: '#6E7681',
-      };
-  }
-}
-
-/**
- * Maps UML relationship types to React Flow line styles
- */
-function getEdgeStyle(type: UMLRelationship['type']) {
-  switch (type) {
-    case 'dependency':
-    case 'realization':
-      return {
-        strokeDasharray: '5,5',
-        stroke: '#6E7681',
-      };
-    default:
-      return {
-        stroke: '#6E7681',
-      };
-  }
 }

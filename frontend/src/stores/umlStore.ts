@@ -1,7 +1,7 @@
 import { create } from 'zustand';
-import { UMLClass, UMLDiagram } from '@/types/uml';
+import { UMLClass, UMLDiagram, UMLRelationship } from '@/types/uml';
 import { useLayoutStore } from '@/stores/layoutStore';
-import { validateClassName } from '@/lib/validation';
+import { validateClassName, validateRelationship } from '@/lib/validation';
 
 interface UMLStoreState {
   diagram: UMLDiagram | null;
@@ -12,6 +12,9 @@ interface UMLStoreState {
   addClass: (cls: UMLClass) => void;
   updateClass: (id: string, updates: Partial<UMLClass>) => void;
   deleteClass: (id: string) => void;
+  addRelationship: (relationship: UMLRelationship) => void;
+  updateRelationship: (id: string, updates: Partial<UMLRelationship>) => void;
+  deleteRelationship: (id: string) => void;
 }
 
 /**
@@ -100,10 +103,72 @@ export const useUMLStore = create<UMLStoreState>((set) => ({
       diagram: {
         ...state.diagram,
         classes: state.diagram.classes.filter((cls) => cls.id !== id),
-        // Also remove associated relationships if any (though Unit 7 handles this properly)
         relationships: state.diagram.relationships.filter(
           (rel) => rel.sourceId !== id && rel.targetId !== id
         ),
+        metadata: { ...state.diagram.metadata, isModified: true }
+      }
+    };
+  }),
+
+  addRelationship: (relationship) => set((state) => {
+    if (!state.diagram) return state;
+
+    const validation = validateRelationship(relationship, state.diagram);
+    if (!validation.valid) {
+      console.error(`Store rejection: ${validation.error}`);
+      return state;
+    }
+
+    const nextRelationship: UMLRelationship = {
+      ...relationship,
+      createdAt: relationship.createdAt ?? new Date().toISOString(),
+    };
+
+    return {
+      diagram: {
+        ...state.diagram,
+        relationships: [...state.diagram.relationships, nextRelationship],
+        metadata: { ...state.diagram.metadata, isModified: true }
+      }
+    };
+  }),
+
+  updateRelationship: (id, updates) => set((state) => {
+    if (!state.diagram) return state;
+
+    const relationship = state.diagram.relationships.find((rel) => rel.id === id);
+    if (!relationship) return state;
+
+    const nextRelationship: UMLRelationship = { ...relationship, ...updates };
+    const nextDiagram: UMLDiagram = {
+      ...state.diagram,
+      relationships: state.diagram.relationships.map((rel) =>
+        rel.id === id ? nextRelationship : rel
+      ),
+    };
+
+    const validation = validateRelationship(nextRelationship, nextDiagram);
+    if (!validation.valid) {
+      console.error(`Store rejection: ${validation.error}`);
+      return state;
+    }
+
+    return {
+      diagram: {
+        ...nextDiagram,
+        metadata: { ...state.diagram.metadata, isModified: true }
+      }
+    };
+  }),
+
+  deleteRelationship: (id) => set((state) => {
+    if (!state.diagram) return state;
+
+    return {
+      diagram: {
+        ...state.diagram,
+        relationships: state.diagram.relationships.filter((rel) => rel.id !== id),
         metadata: { ...state.diagram.metadata, isModified: true }
       }
     };

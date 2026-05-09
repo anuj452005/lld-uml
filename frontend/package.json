@@ -9,6 +9,9 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@monaco-editor/react": "^4.7.0",
+    "@repo/parser-client": "file:../packages/parser-client",
+    "@repo/persistence": "file:../packages/persistence",
     "@supabase/ssr": "^0.10.3",
     "@supabase/supabase-js": "^2.105.4",
     "clsx": "^2.1.1",

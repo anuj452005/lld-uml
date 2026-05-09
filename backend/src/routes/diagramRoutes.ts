@@ -1,5 +1,6 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { DiagramService } from '../services/diagramService.js';
+import { PersistenceController } from '../controllers/persistenceController.js';
 import {
   CreateDiagramPayloadSchema,
   UpdateDiagramPayloadSchema,
@@ -157,5 +158,20 @@ function validateDiagramSemantic(diagram: UMLDiagram): string | null {
 
   return null;
 }
+
+// PUT /api/v1/diagrams/:id - Save working snapshot (auto-save)
+router.put('/:id', authenticate, async (req: Request, res: Response) => {
+  await PersistenceController.saveWorkingSnapshot(req, res);
+});
+
+// POST /api/v1/diagrams/:id/versions - Create a new version
+router.post('/:id/versions', authenticate, async (req: Request, res: Response) => {
+  await PersistenceController.createVersion(req, res);
+});
+
+// GET /api/v1/diagrams/:id/versions - List versions
+router.get('/:id/versions', authenticate, async (req: Request, res: Response) => {
+  await PersistenceController.listVersions(req, res);
+});
 
 export default router;

@@ -1,5 +1,5 @@
-import { UMLRelationship, UMLDiagram, UMLRelationshipType } from '../../../types/uml.js';
-import { ValidationResult } from './methodValidation.js';
+import { UMLRelationship, UMLDiagram, UMLRelationshipType } from '../../../types/uml';
+import { ValidationResult } from './methodValidation';
 
 /**
  * Validates a UML relationship.

@@ -1,4 +1,4 @@
-import { UMLMethod } from '../../../types/uml.js';
+import { UMLMethod } from '../../../types/uml';
 
 export interface ValidationResult {
   valid: boolean;

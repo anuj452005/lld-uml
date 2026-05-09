@@ -1,5 +1,5 @@
-import { UMLField, UMLVisibility } from '../../../types/uml.js';
-import { ValidationResult } from './methodValidation.js';
+import { UMLField, UMLVisibility } from '../../../types/uml';
+import { ValidationResult } from './methodValidation';
 
 /**
  * Validates a UML field definition.

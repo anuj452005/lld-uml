@@ -1,4 +1,4 @@
-import { ValidationResult } from './methodValidation.js';
+import { ValidationResult } from './methodValidation';
 
 /**
  * Validates a class or interface name.
