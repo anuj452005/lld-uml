@@ -20,7 +20,9 @@
     ],
     "paths": {
       "@/*": ["./src/*"],
-      "@repo/persistence": ["../packages/persistence/src"]
+      "@repo/persistence": ["../packages/persistence/src"],
+      "@repo/diagram-engine": ["../packages/diagram-engine/src"],
+      "@repo/parser-client": ["../packages/parser-client/src"]
     }
   },
   "include": [
