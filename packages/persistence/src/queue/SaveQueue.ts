@@ -17,7 +17,8 @@ export interface SaveQueueConfig {
 }
 
 export class SaveQueue {
-  private pendingOperation: SaveOperation | null = null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  private pendingOperation: SaveOperation<any> | null = null;
   private timeoutId: NodeJS.Timeout | null = null;
   private readonly delay: number;
 
@@ -33,7 +34,7 @@ export class SaveQueue {
     this.cancel();
 
     // Store the new operation and schedule execution
-    this.pendingOperation = operation;
+    this.pendingOperation = operation as SaveOperation<unknown>;
 
     return new Promise((resolve, reject) => {
       this.timeoutId = setTimeout(async () => {
