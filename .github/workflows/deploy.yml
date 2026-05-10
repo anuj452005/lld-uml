@@ -104,4 +104,4 @@ jobs:
           imageToDeploy: ${{ secrets.ACR_NAME }}.azurecr.io/uml-frontend:${{ github.sha }}
           environmentVariables: >-
             NEXT_PUBLIC_SUPABASE_URL=${{ secrets.SUPABASE_URL }}
-            NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}
+            NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=${{ secrets.SUPABASE_ANON_KEY }}
