@@ -27,6 +27,8 @@ COPY frontend ./frontend
 
 # Build the frontend
 WORKDIR /app/frontend
+ENV NEXT_PUBLIC_SUPABASE_URL="https://dummy.supabase.co"
+ENV NEXT_PUBLIC_SUPABASE_ANON_KEY="dummy-key"
 RUN npm run build
 
 # Run stage - lean production image
