@@ -78,3 +78,47 @@ export async function signOut() {
   revalidatePath('/', 'layout')
   redirect('/login')
 }
+
+export async function signInWithGoogle() {
+  const cookieStore = await cookies()
+  const supabase = createClient(cookieStore)
+  const origin = (await headers()).get('origin')
+
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: `${origin}/auth/callback`,
+    },
+  })
+
+  if (error) {
+    console.error('[Supabase Auth Error - Google]:', error)
+    redirect('/login?error=' + encodeURIComponent(error.message))
+  }
+
+  if (data.url) {
+    redirect(data.url)
+  }
+}
+
+export async function signInWithGithub() {
+  const cookieStore = await cookies()
+  const supabase = createClient(cookieStore)
+  const origin = (await headers()).get('origin')
+
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: 'github',
+    options: {
+      redirectTo: `${origin}/auth/callback`,
+    },
+  })
+
+  if (error) {
+    console.error('[Supabase Auth Error - Github]:', error)
+    redirect('/login?error=' + encodeURIComponent(error.message))
+  }
+
+  if (data.url) {
+    redirect(data.url)
+  }
+}
