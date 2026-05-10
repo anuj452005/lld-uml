@@ -40,11 +40,14 @@ COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/frontend/.next ./frontend/.next
 COPY --from=build /app/frontend/public ./frontend/public
 COPY --from=build /app/frontend/package*.json ./frontend/
+COPY --from=build /app/frontend/node_modules ./frontend/node_modules
 
 # Copy packages for @repo/* module resolution at runtime
 COPY --from=build /app/packages ./packages
 
 EXPOSE 3000
 ENV NODE_ENV=production
+ENV HOSTNAME="0.0.0.0"
+ENV PORT=3000
 WORKDIR /app/frontend
 CMD ["npm", "start"]
