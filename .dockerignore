@@ -1,0 +1,39 @@
+# Node modules - never include local installs; Docker will install fresh
+node_modules/
+frontend/node_modules/
+backend/node_modules/
+packages/*/node_modules/
+
+# Next.js build output
+frontend/.next/
+frontend/out/
+
+# Backend build output
+backend/dist/
+
+# Environment files - secrets should come from CI/CD
+.env
+.env.local
+frontend/.env.local
+backend/.env
+backend/.env.production
+
+# Git and CI metadata
+.git/
+.github/
+
+# IDE and OS artifacts
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# TypeScript build info
+*.tsbuildinfo
+
+# Docs and non-essential files
+docs/
+*.md
+!README.md

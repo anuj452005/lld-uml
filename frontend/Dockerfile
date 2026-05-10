@@ -10,8 +10,10 @@ COPY packages/parser-client/package*.json ./packages/parser-client/
 COPY packages/persistence/package*.json ./packages/persistence/
 COPY packages/validation/package*.json ./packages/validation/
 
-# Install dependencies for the whole workspace
-RUN npm install
+# Install ALL dependencies (including dev and optional) for the build.
+# --include=optional ensures platform-specific native binaries (e.g. lightningcss-linux-x64-gnu)
+# are installed even when they are marked optional in the lockfile.
+RUN npm install --include=optional
 
 # Copy the rest of the source code
 COPY packages ./packages
@@ -21,18 +23,17 @@ COPY frontend ./frontend
 WORKDIR /app/frontend
 RUN npm run build
 
-# Run stage
+# Run stage - lean production image
 FROM node:20-slim
 WORKDIR /app
 
 # Copy built assets and necessary files for runtime
-# Note: We copy the workspace node_modules from the root
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/frontend/.next ./frontend/.next
 COPY --from=build /app/frontend/public ./frontend/public
 COPY --from=build /app/frontend/package*.json ./frontend/
 
-# Also copy the packages for potential runtime references if needed
+# Copy packages for workspace module resolution at runtime
 COPY --from=build /app/packages ./packages
 
 EXPOSE 3000
