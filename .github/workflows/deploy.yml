@@ -60,6 +60,9 @@ jobs:
           containerAppName: ca-parser
           resourceGroup: uml-architect-rg
           imageToDeploy: ${{ secrets.ACR_NAME }}.azurecr.io/uml-parser:${{ github.sha }}
+          registryUrl: ${{ secrets.ACR_NAME }}.azurecr.io
+          registryUsername: ${{ secrets.ACR_USERNAME }}
+          registryPassword: ${{ secrets.ACR_PASSWORD }}
 
   # ─────────────────────────────────────────────
   # Job 3: Deploy Backend (depends on parser being up)
@@ -79,6 +82,9 @@ jobs:
           containerAppName: ca-backend
           resourceGroup: uml-architect-rg
           imageToDeploy: ${{ secrets.ACR_NAME }}.azurecr.io/uml-backend:${{ github.sha }}
+          registryUrl: ${{ secrets.ACR_NAME }}.azurecr.io
+          registryUsername: ${{ secrets.ACR_USERNAME }}
+          registryPassword: ${{ secrets.ACR_PASSWORD }}
           environmentVariables: >-
             SUPABASE_URL=${{ secrets.SUPABASE_URL }}
             SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
@@ -102,6 +108,9 @@ jobs:
           containerAppName: ca-frontend
           resourceGroup: uml-architect-rg
           imageToDeploy: ${{ secrets.ACR_NAME }}.azurecr.io/uml-frontend:${{ github.sha }}
+          registryUrl: ${{ secrets.ACR_NAME }}.azurecr.io
+          registryUsername: ${{ secrets.ACR_USERNAME }}
+          registryPassword: ${{ secrets.ACR_PASSWORD }}
           environmentVariables: >-
             NEXT_PUBLIC_SUPABASE_URL=${{ secrets.SUPABASE_URL }}
             NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=${{ secrets.SUPABASE_ANON_KEY }}
