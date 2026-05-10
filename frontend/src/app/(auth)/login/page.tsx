@@ -4,9 +4,9 @@ import { login } from '../actions'
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string; message?: string }>
+  searchParams: Promise<{ error?: string; message?: string; trace?: string }>
 }) {
-  const { error, message } = await searchParams;
+  const { error, message, trace } = await searchParams;
 
   return (
     <div className="flex-1 flex flex-col w-full px-8 sm:max-w-md justify-center gap-2 mx-auto">
@@ -42,7 +42,10 @@ export default async function LoginPage({
 
         {error && (
           <div className="px-4 py-3 bg-status-error/10 border border-status-error/20 text-status-error rounded-md text-sm">
-            {error}
+            <div>{error}</div>
+            {trace && (
+              <div className="mt-2 text-xs text-text-tertiary">Trace id: <span className="font-mono">{trace}</span> — share this when reporting the issue.</div>
+            )}
           </div>
         )}
 

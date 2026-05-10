@@ -21,14 +21,16 @@ export async function login(formData: FormData) {
   })
 
   if (error) {
+    const traceId = Math.random().toString(16).slice(2) + Date.now().toString(16)
     console.error('[Supabase Auth Error - Login]:', {
+      traceId,
       message: error.message,
       status: error.status,
       name: error.name,
       cause: (error as any).cause,
       code: (error as any).code
     });
-    redirect('/login?error=' + encodeURIComponent(error.message))
+    redirect('/login?error=' + encodeURIComponent(error.message) + '&trace=' + encodeURIComponent(traceId))
   }
 
   revalidatePath('/', 'layout')
