@@ -34,7 +34,7 @@ router.post('/java', authenticate, async (req: Request, res: Response) => {
   }
 
   try {
-    const parserUrl = process.env.JAVA_PARSER_URL || 'http://localhost:8080';
+    const parserUrl = process.env.PARSER_URL || process.env.JAVA_PARSER_URL || 'http://localhost:8080';
     console.log(`Forwarding parse request to ${parserUrl}/parse`);
 
     const response = await fetch(`${parserUrl}/parse`, {
