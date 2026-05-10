@@ -1,4 +1,4 @@
-# Build stage
+# Build stage - compile TypeScript
 FROM node:20-slim AS build
 WORKDIR /app
 COPY package*.json ./
@@ -6,13 +6,13 @@ RUN npm install
 COPY . .
 RUN npm run build
 
-# Run stage
+# Run stage - production only, no devDependencies
 FROM node:20-slim
 WORKDIR /app
-COPY --from=build /app/package*.json ./
-COPY --from=build /app/node_modules ./node_modules
+COPY package*.json ./
+RUN npm install --omit=dev
 COPY --from=build /app/dist ./dist
 
 EXPOSE 3005
 ENV NODE_ENV=production
-CMD ["npm", "start"]
+CMD ["node", "dist/index.js"]

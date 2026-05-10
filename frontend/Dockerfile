@@ -2,7 +2,7 @@
 FROM node:20-slim AS build
 WORKDIR /app
 
-# Copy workspace configuration and all package.json files for better caching
+# Copy workspace configuration and all package.json files for better layer caching
 COPY package*.json ./
 COPY frontend/package*.json ./frontend/
 COPY packages/diagram-engine/package*.json ./packages/diagram-engine/
@@ -10,10 +10,17 @@ COPY packages/parser-client/package*.json ./packages/parser-client/
 COPY packages/persistence/package*.json ./packages/persistence/
 COPY packages/validation/package*.json ./packages/validation/
 
-# Install ALL dependencies (including dev and optional) for the build.
-# --include=optional ensures platform-specific native binaries (e.g. lightningcss-linux-x64-gnu)
-# are installed even when they are marked optional in the lockfile.
+# Install all workspace dependencies
 RUN npm install --include=optional
+
+# The root package-lock.json was generated on Windows, so the Linux-specific
+# lightningcss native binary (needed by @tailwindcss/postcss at build time) is
+# NOT present in frontend/node_modules/lightningcss-linux-x64-gnu.
+# We explicitly install it into the frontend package to unblock the build.
+RUN npm install --prefix /app/frontend \
+    lightningcss-linux-x64-gnu@1.32.0 \
+    lightningcss-linux-x64-musl@1.32.0 \
+    --no-save --include=optional
 
 # Copy the rest of the source code
 COPY packages ./packages
@@ -27,13 +34,13 @@ RUN npm run build
 FROM node:20-slim
 WORKDIR /app
 
-# Copy built assets and necessary files for runtime
+# Copy built assets and workspace node_modules for runtime
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/frontend/.next ./frontend/.next
 COPY --from=build /app/frontend/public ./frontend/public
 COPY --from=build /app/frontend/package*.json ./frontend/
 
-# Copy packages for workspace module resolution at runtime
+# Copy packages for @repo/* module resolution at runtime
 COPY --from=build /app/packages ./packages
 
 EXPOSE 3000

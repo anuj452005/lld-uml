@@ -5,7 +5,7 @@
 
     <groupId>com.uml.parser</groupId>
     <artifactId>java-parser</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0.0</version>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
@@ -53,13 +53,32 @@
 
     <build>
         <plugins>
+            <!-- Shade plugin: produces a fat/uber JAR with all dependencies bundled.
+                 Required so that `java -jar app.jar` works in Docker — the default
+                 Maven JAR is a thin JAR that excludes all transitive dependencies
+                 (Javalin, Jackson, JavaParser), causing ClassNotFoundException at startup. -->
             <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
-                <version>3.1.1</version>
-                <configuration>
-                    <mainClass>com.uml.parser.ParserApplication</mainClass>
-                </configuration>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.5.1</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>com.uml.parser.ParserApplication</mainClass>
+                                </transformer>
+                                <!-- Merge META-INF/services for SLF4J/Javalin ServiceLoader compatibility -->
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                            </transformers>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
