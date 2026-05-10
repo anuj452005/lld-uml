@@ -19,7 +19,6 @@ RUN npm install --include=optional
 # We explicitly install it into the frontend package to unblock the build.
 RUN npm install --prefix /app/frontend \
     lightningcss-linux-x64-gnu@1.32.0 \
-    lightningcss-linux-x64-musl@1.32.0 \
     --no-save --include=optional
 
 # Copy the rest of the source code
