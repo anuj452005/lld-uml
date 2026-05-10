@@ -39,7 +39,12 @@ jobs:
 
       - name: Build and Push Frontend
         run: |
-          docker build -t ${{ secrets.ACR_NAME }}.azurecr.io/uml-frontend:${{ github.sha }} -f frontend/Dockerfile .
+          docker build \
+            --build-arg NEXT_PUBLIC_SUPABASE_URL=${{ secrets.SUPABASE_URL }} \
+            --build-arg NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=${{ secrets.SUPABASE_ANON_KEY }} \
+            --build-arg NEXT_PUBLIC_API_URL=${{ secrets.BACKEND_URL }}/api/v1 \
+            -t ${{ secrets.ACR_NAME }}.azurecr.io/uml-frontend:${{ github.sha }} \
+            -f frontend/Dockerfile .
           docker push ${{ secrets.ACR_NAME }}.azurecr.io/uml-frontend:${{ github.sha }}
 
   # ─────────────────────────────────────────────
