@@ -9,6 +9,9 @@ export async function login(formData: FormData) {
   const cookieStore = await cookies()
   const supabase = createClient(cookieStore)
 
+  console.log('[Auth Action] Starting login attempt...');
+  console.log('[Auth Action] NEXT_PUBLIC_SUPABASE_URL present:', !!process.env.NEXT_PUBLIC_SUPABASE_URL);
+
   const email = formData.get('email') as string
   const password = formData.get('password') as string
 
@@ -18,6 +21,13 @@ export async function login(formData: FormData) {
   })
 
   if (error) {
+    console.error('[Supabase Auth Error - Login]:', {
+      message: error.message,
+      status: error.status,
+      name: error.name,
+      cause: (error as any).cause,
+      code: (error as any).code
+    });
     redirect('/login?error=' + encodeURIComponent(error.message))
   }
 
@@ -29,6 +39,9 @@ export async function signup(formData: FormData) {
   const cookieStore = await cookies()
   const supabase = createClient(cookieStore)
 
+  console.log('[Auth Action] Starting signup attempt...');
+  console.log('[Auth Action] NEXT_PUBLIC_SUPABASE_URL present:', !!process.env.NEXT_PUBLIC_SUPABASE_URL);
+
   const email = formData.get('email') as string
   const password = formData.get('password') as string
 
@@ -38,6 +51,13 @@ export async function signup(formData: FormData) {
   })
 
   if (error) {
+    console.error('[Supabase Auth Error - Signup]:', {
+      message: error.message,
+      status: error.status,
+      name: error.name,
+      cause: (error as any).cause,
+      code: (error as any).code
+    });
     redirect('/signup?error=' + encodeURIComponent(error.message))
   }
 
