@@ -86,7 +86,8 @@ The project follows a **Derived View Pattern**. The UML semantic model is the ab
    npm install
    # Create .env.local with NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
    # (Supabase anon public key). Set NEXT_PUBLIC_SITE_URL to your public https origin so
-   # OAuth redirect_to matches production (see `frontend/.env.production` and Dockerfile ARG).
+   # OAuth redirect_to matches production via `frontend/.env.production` (Docker build does not
+   # inject NEXT_PUBLIC_SITE_URL so an empty CI env cannot override that file).
    npm run dev
    ```
 

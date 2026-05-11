@@ -30,11 +30,12 @@ WORKDIR /app/frontend
 ARG NEXT_PUBLIC_SUPABASE_URL
 ARG NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
 ARG NEXT_PUBLIC_API_URL
-ARG NEXT_PUBLIC_SITE_URL
 ENV NEXT_PUBLIC_SUPABASE_URL=$NEXT_PUBLIC_SUPABASE_URL
 ENV NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=$NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
-ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL
+# NEXT_PUBLIC_SITE_URL: do not set via ARG/ENV here. CI did not pass a build-arg,
+# and `ENV NEXT_PUBLIC_SITE_URL=` would override `frontend/.env.production` during
+# `next build`, breaking OAuth redirect_to. Use committed `.env.production` instead.
 RUN npm run build
 
 # Run stage - lean production image
