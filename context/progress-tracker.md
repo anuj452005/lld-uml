@@ -113,6 +113,7 @@ he - **Auth: OAuth redirect base URL**
   - Committed `frontend/.env.production` with `NEXT_PUBLIC_SITE_URL` for the Azure Container Apps frontend host; `frontend/.gitignore` allows this file via `!.env.production`.
   - OAuth (Google/GitHub) starts from the browser via `OAuthProviderButtons` (`signInWithOAuth` + `window.location.assign`) instead of server actions, avoiding failed Server Action `fetch` calls that blocked the redirect.
   - Sign out from `TopNav` uses browser `supabase.auth.signOut()` plus `window.location.assign('/login')` (removed server `signOut` action). Fetch debug logs use single-line messages so status/URL are visible in the console.
+  - OAuth `redirect_to` uses `NEXT_PUBLIC_SITE_URL` first (`getOAuthRedirectBaseUrl`) so production Google sign-in returns to the Azure host, not localhost. Dockerfile accepts `NEXT_PUBLIC_SITE_URL` build ARG.
 
 ## Next Up
 

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/utils/supabase/client'
+import { getOAuthRedirectBaseUrl } from '@/lib/oauth-public-base-url'
 
 type Provider = 'google' | 'github'
 
@@ -14,7 +15,18 @@ export function OAuthProviderButtons() {
     setPending(provider)
     try {
       const supabase = createClient()
-      const redirectTo = `${window.location.origin}/auth/callback`
+      const base = getOAuthRedirectBaseUrl()
+      if (!base) {
+        router.replace(
+          '/login?error=' +
+            encodeURIComponent(
+              'App URL is not configured. Set NEXT_PUBLIC_SITE_URL for this environment.',
+            ),
+        )
+        setPending(null)
+        return
+      }
+      const redirectTo = `${base}/auth/callback`
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
         options: { redirectTo },

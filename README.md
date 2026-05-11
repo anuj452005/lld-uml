@@ -4,12 +4,7 @@
 
 LLD-UML Architect is a technical workspace designed for developers who need to bridge the gap between Java source code and architectural diagrams. Unlike generic drag-and-drop tools, this editor is built around a canonical UML semantic model, ensuring that every diagram is technically accurate and structurally sound.
 
-<<<<<<< HEAD
-![UML Editor Banner](https://raw.githubusercontent.com/Anuj452005/LLD-uml-code/main/context/image.png) *(Placeholder: Replace with actual screenshot)*
-=======
-![UML Editor Banner]<img width="1919" height="1147" alt="image" src="https://github.com/user-attachments/assets/ba3568c2-72dc-4151-8600-bd699506e487" />
-
->>>>>>> 9bd7823fb5d628677e6ec3153706ca494ba0b65f
+![UML Editor Banner](https://github.com/user-attachments/assets/ba3568c2-72dc-4151-8600-bd699506e487)
 
 ## ✨ Key Features
 
@@ -89,13 +84,9 @@ The project follows a **Derived View Pattern**. The UML semantic model is the ab
    ```bash
    cd frontend
    npm install
-<<<<<<< HEAD
    # Create .env.local with NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
-   # (Supabase "anon" public key). Production builds also load `frontend/.env.production`,
-   # which pins NEXT_PUBLIC_SITE_URL for OAuth; override in .env.local for local dev.
-=======
-   # Create .env.local with NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY
->>>>>>> 9bd7823fb5d628677e6ec3153706ca494ba0b65f
+   # (Supabase anon public key). Set NEXT_PUBLIC_SITE_URL to your public https origin so
+   # OAuth redirect_to matches production (see `frontend/.env.production` and Dockerfile ARG).
    npm run dev
    ```
 
