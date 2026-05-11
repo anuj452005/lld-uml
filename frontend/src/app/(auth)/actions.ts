@@ -3,7 +3,8 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
-import { cookies, headers } from 'next/headers'
+import { getAppBaseUrl } from '@/lib/site-url'
+import { cookies } from 'next/headers'
 
 export async function login(formData: FormData) {
   const cookieStore = await cookies()
@@ -47,12 +48,12 @@ export async function signup(formData: FormData) {
   const email = formData.get('email') as string
   const password = formData.get('password') as string
 
-  const origin = (await headers()).get('origin')
+  const baseUrl = await getAppBaseUrl()
   const { error } = await supabase.auth.signUp({
     email,
     password,
     options: {
-      emailRedirectTo: `${origin}/auth/callback`,
+      emailRedirectTo: `${baseUrl}/auth/callback`,
     },
   })
 
@@ -69,56 +70,4 @@ export async function signup(formData: FormData) {
 
   revalidatePath('/', 'layout')
   redirect('/login?message=' + encodeURIComponent('Check your email to confirm your account.'))
-}
-
-export async function signOut() {
-  const cookieStore = await cookies()
-  const supabase = createClient(cookieStore)
-  await supabase.auth.signOut()
-  revalidatePath('/', 'layout')
-  redirect('/login')
-}
-
-export async function signInWithGoogle() {
-  const cookieStore = await cookies()
-  const supabase = createClient(cookieStore)
-  const origin = (await headers()).get('origin')
-
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: 'google',
-    options: {
-      redirectTo: `${origin}/auth/callback`,
-    },
-  })
-
-  if (error) {
-    console.error('[Supabase Auth Error - Google]:', error)
-    redirect('/login?error=' + encodeURIComponent(error.message))
-  }
-
-  if (data.url) {
-    redirect(data.url)
-  }
-}
-
-export async function signInWithGithub() {
-  const cookieStore = await cookies()
-  const supabase = createClient(cookieStore)
-  const origin = (await headers()).get('origin')
-
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: 'github',
-    options: {
-      redirectTo: `${origin}/auth/callback`,
-    },
-  })
-
-  if (error) {
-    console.error('[Supabase Auth Error - Github]:', error)
-    redirect('/login?error=' + encodeURIComponent(error.message))
-  }
-
-  if (data.url) {
-    redirect(data.url)
-  }
 }

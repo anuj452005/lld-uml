@@ -106,6 +106,13 @@ Update this file after every meaningful implementation change.
   - Added automatic 401 Unauthorized handling in `DiagramService`.
   - Added persistence middleware to `ParserStore` to preserve Java source code across refreshes.
   - Integrated `html-to-image` and implemented `ExportService` for PNG, JPEG, SVG, and PDF exports.
+he - **Auth: OAuth redirect base URL**
+  - Added `frontend/src/lib/site-url.ts` with `getAppBaseUrl()` (prefers `NEXT_PUBLIC_SITE_URL`, then `VERCEL_URL`, then `Origin` / `x-forwarded-*` / `host`, else localhost).
+  - Wired Google, GitHub, and signup email confirmation redirects in `frontend/src/app/(auth)/actions.ts` to use that helper instead of a bare `headers().get('origin')`.
+  - Documented env vars in the root `README.md` for Supabase publishable key and optional `NEXT_PUBLIC_SITE_URL`.
+  - Committed `frontend/.env.production` with `NEXT_PUBLIC_SITE_URL` for the Azure Container Apps frontend host; `frontend/.gitignore` allows this file via `!.env.production`.
+  - OAuth (Google/GitHub) starts from the browser via `OAuthProviderButtons` (`signInWithOAuth` + `window.location.assign`) instead of server actions, avoiding failed Server Action `fetch` calls that blocked the redirect.
+  - Sign out from `TopNav` uses browser `supabase.auth.signOut()` plus `window.location.assign('/login')` (removed server `signOut` action). Fetch debug logs use single-line messages so status/URL are visible in the console.
 
 ## Next Up
 

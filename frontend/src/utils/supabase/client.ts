@@ -24,23 +24,25 @@ function patchBrowserFetchForLogging() {
       const res = await nativeFetch(input, init);
 
       if (!res.ok) {
-        console.error(`[fetch][trace:${traceId}] Non-2xx response`, {
-          url,
-          method,
-          status: res.status,
-          statusText: res.statusText,
-        });
+        // Single-line log so devtools always show URL/status (object-only logs often look like `{}`).
+        console.error(
+          `[fetch][trace:${traceId}] Non-2xx ${res.status} ${res.statusText} ${method} ${url}`,
+        );
       }
 
       return res;
     } catch (err) {
       try {
-        console.error(`[fetch][trace:${traceId}] Network/CORS or fetch error`, {
-          url,
-          method,
-          message: err instanceof Error ? err.message : String(err),
-          stack: err instanceof Error ? err.stack : undefined,
-        });
+        const message =
+          err instanceof Error
+            ? err.message
+            : typeof err === 'object' && err !== null && 'message' in err
+              ? String((err as { message: unknown }).message)
+              : String(err)
+        console.error(
+          `[fetch][trace:${traceId}] Network/CORS or fetch error ${method} ${url} — ${message}`,
+          err instanceof Error ? err.stack : undefined,
+        );
       } catch (e) {
         // swallow logging errors
       }

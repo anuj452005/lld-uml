@@ -1,12 +1,12 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { useSessionStore } from '@/stores/sessionStore'
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const setUser = useSessionStore((state) => state.setUser)
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
 
   useEffect(() => {
     const {

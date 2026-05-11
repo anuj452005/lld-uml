@@ -3,12 +3,12 @@
 import React, { useState } from 'react';
 import { Save, Share2, Settings, User, LogOut, Clock } from 'lucide-react';
 import { usePathname } from 'next/navigation';
+import { createClient } from '@/utils/supabase/client';
 import { useSessionStore } from '@/stores/sessionStore';
 import { usePersistenceStore } from '@/stores/persistenceStore';
 import { useUMLStore } from '@/stores/umlStore';
 import { SaveVersionModal } from '@/features/persistence/SaveVersionModal';
 import { VersionListPanel } from '@/features/persistence/VersionListPanel';
-import { signOut } from '@/app/(auth)/actions';
 import { ExportMenu } from '@/components/ExportMenu';
 
 export interface TopNavProps {
@@ -18,6 +18,7 @@ export interface TopNavProps {
 export const TopNav: React.FC<TopNavProps> = ({ diagramId: propDiagramId }) => {
   const pathname = usePathname();
   const user = useSessionStore((state) => state.user);
+  const setUser = useSessionStore((state) => state.setUser);
   const saveStatus = usePersistenceStore((state) => state.saveStatus);
   const errorMessage = usePersistenceStore((state) => state.errorMessage);
   const lastSavedAt = usePersistenceStore((state) => state.lastSavedAt);
@@ -29,6 +30,18 @@ export const TopNav: React.FC<TopNavProps> = ({ diagramId: propDiagramId }) => {
   const diagramId = propDiagramId || (pathname.includes('/workspace/') ? pathname.split('/workspace/')[1] : undefined);
 
   const { diagram } = useUMLStore();
+
+  const handleSignOut = async () => {
+    try {
+      const supabase = createClient();
+      await supabase.auth.signOut();
+    } catch (e) {
+      console.error('[TopNav] signOut failed', e);
+    } finally {
+      setUser(null);
+      window.location.assign('/login');
+    }
+  };
 
   // Status badge styling
   const getStatusColor = () => {
@@ -136,7 +149,8 @@ export const TopNav: React.FC<TopNavProps> = ({ diagramId: propDiagramId }) => {
                 <span className="text-sm text-text-secondary leading-tight">{user.email}</span>
               </div>
               <button
-                onClick={() => signOut()}
+                type="button"
+                onClick={() => void handleSignOut()}
                 className="p-2 hover:bg-bg-surface-tertiary rounded-md text-text-secondary hover:text-status-error transition-colors"
                 title="Sign Out"
               >
